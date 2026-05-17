@@ -1,0 +1,20 @@
+{{ .gemma4.domain }} {
+	encode zstd gzip
+
+	handle /v1/* {
+		reverse_proxy 127.0.0.1:8000 {
+			transport http {
+				read_timeout 10m
+				write_timeout 10m
+			}
+		}
+	}
+
+	handle /grafana/* {
+		reverse_proxy 127.0.0.1:3000
+	}
+
+	handle {
+		respond 404
+	}
+}

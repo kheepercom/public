@@ -1,0 +1,97 @@
+{
+  "uid": "gemma4-vllm",
+  "title": "Gemma 4 vLLM",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+        "query": "label_values(vllm:num_requests_running, instance)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "selected": false, "text": "", "value": "" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Tokens / sec",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        { "expr": "rate(vllm:prompt_tokens_total{job=\"vllm\",instance=~\"$instance\"}[1m])", "legendFormat": "prompt", "refId": "A" },
+        { "expr": "rate(vllm:generation_tokens_total{job=\"vllm\",instance=~\"$instance\"}[1m])", "legendFormat": "generation", "refId": "B" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Time to first token (s)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"vllm\",instance=~\"$instance\"}[5m])))", "legendFormat": "p50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"vllm\",instance=~\"$instance\"}[5m])))", "legendFormat": "p95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(vllm:time_to_first_token_seconds_bucket{job=\"vllm\",instance=~\"$instance\"}[5m])))", "legendFormat": "p99", "refId": "C" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "End-to-end request latency (s)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"vllm\",instance=~\"$instance\"}[5m])))", "legendFormat": "p50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"vllm\",instance=~\"$instance\"}[5m])))", "legendFormat": "p95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(vllm:e2e_request_latency_seconds_bucket{job=\"vllm\",instance=~\"$instance\"}[5m])))", "legendFormat": "p99", "refId": "C" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Active & queued requests",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 } },
+      "targets": [
+        { "expr": "vllm:num_requests_running{job=\"vllm\",instance=~\"$instance\"}", "legendFormat": "running", "refId": "A" },
+        { "expr": "vllm:num_requests_waiting{job=\"vllm\",instance=~\"$instance\"}", "legendFormat": "waiting", "refId": "B" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "KV cache utilization",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1 } },
+      "targets": [
+        { "expr": "vllm:gpu_cache_usage_perc{job=\"vllm\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Request failures / sec",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "ops" } },
+      "targets": [
+        { "expr": "rate(vllm:request_failure_total{job=\"vllm\",instance=~\"$instance\"}[5m])", "refId": "A" }
+      ]
+    }
+  ]
+}

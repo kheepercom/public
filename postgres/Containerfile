@@ -1,0 +1,30 @@
+FROM kheeper.com/public/postgres-base:v0.1.0
+
+ARG LEGO_VERSION=v4.35.2
+
+RUN curl -fsSL "https://github.com/go-acme/lego/releases/download/${LEGO_VERSION}/lego_${LEGO_VERSION}_linux_amd64.tar.gz" \
+		| tar -xz -C /usr/local/bin lego \
+	&& chmod 0755 /usr/local/bin/lego
+
+RUN firewall-offline-cmd --zone=public --add-port=5432/tcp \
+	&& firewall-offline-cmd --zone=public --add-port=80/tcp
+
+COPY --chmod=0755 postgres-cert-deploy.sh /usr/local/sbin/postgres-cert-deploy
+COPY --chmod=0755 postgres-cert-issue.sh /usr/local/sbin/postgres-cert-issue
+COPY --chmod=0755 postgres-cert-renew.sh /usr/local/sbin/postgres-cert-renew
+COPY postgres-cert.service /usr/lib/systemd/system/postgres-cert.service
+COPY postgres-cert-renew.service /usr/lib/systemd/system/postgres-cert-renew.service
+COPY postgres-cert-renew.timer /usr/lib/systemd/system/postgres-cert-renew.timer
+COPY postgres-cert.env.khtmpl /usr/share/factory/etc/kheeper/postgres-cert.env.khtmpl
+COPY schema.json /etc/kheeper/schema.d/postgres.json
+
+COPY --chmod=0755 postgres-password-apply.sh /usr/local/sbin/postgres-password-apply
+COPY postgres-password.service /usr/lib/systemd/system/postgres-password.service
+COPY postgres-password.env.khtmpl /usr/share/factory/etc/kheeper/postgres-password.env.khtmpl
+COPY kheeper-postgres.conf /usr/lib/tmpfiles.d/kheeper-postgres.conf
+
+COPY 30-listen.conf /etc/kheeper/postgresql-conf.d/30-listen.conf
+
+RUN systemctl enable postgres-cert postgres-password postgres-cert-renew.timer
+
+RUN bootc container lint

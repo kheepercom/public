@@ -1,0 +1,21 @@
+[Unit]
+Description=Localhost S3 proxy: wal-g -> kheeper objects backend
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/kheeper/default/identity.json
+
+[Service]
+Environment=KHEEPER_CONFIG=/etc/kheeper
+ExecStart=/usr/local/bin/kheeper object-proxy --listen 127.0.0.1:5000
+Restart=on-failure
+RestartSec=3
+# Reads /etc/kheeper/default/ed25519_private.pem to mint host JWTs; runs
+# as root because that key is root-owned + 0600. Listens on loopback only.
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+ReadOnlyPaths=/etc/kheeper
+
+[Install]
+WantedBy=multi-user.target

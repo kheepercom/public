@@ -1,0 +1,41 @@
+FROM kheeper.com/public/base:v0.1.0
+
+ARG VMSINGLE_VERSION=v1.142.0
+ARG NODE_EXPORTER_VERSION=1.11.1
+ARG GRAFANA_VERSION=11.4.0
+
+RUN curl -LO https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${VMSINGLE_VERSION}/victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz \
+	&& tar xzf victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz -C /usr/local/bin --transform 's/victoria-metrics-prod/victoria-metrics/' \
+	&& rm victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz
+
+
+RUN curl -LO https://github.com/prometheus/node_exporter/releases/download/v${NODE_EXPORTER_VERSION}/node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz \
+	&& tar xzf node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz -C /usr/local/bin --strip-components=1 node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64/node_exporter \
+	&& rm node_exporter-${NODE_EXPORTER_VERSION}.linux-amd64.tar.gz
+
+# Pin system users to stable UIDs/GIDs so persistent data (owned numerically
+# in /var/lib/...) keeps the right owner across image rebuilds.
+COPY vmetrics.sysusers /usr/lib/sysusers.d/vmetrics.conf
+RUN groupadd --system --gid 995 vmetrics \
+	&& useradd --system --uid 992 --gid 995 --no-create-home --home-dir /nonexistent --shell /sbin/nologin vmetrics \
+	&& groupadd --system --gid 970 grafana \
+	&& useradd --system --uid 970 --gid 970 --no-create-home --home-dir /usr/share/grafana --shell /sbin/nologin grafana
+
+RUN curl -L -o /tmp/grafana.rpm https://dl.grafana.com/oss/release/grafana-${GRAFANA_VERSION}-1.x86_64.rpm \
+	&& dnf install -y /tmp/grafana.rpm \
+	&& dnf clean all \
+	&& rm /tmp/grafana.rpm \
+	&& systemctl disable grafana-server.service || true \
+	&& rm -rf /var/lib/grafana
+
+COPY scrape.yml /etc/victoria-metrics/scrape.yml
+COPY vmetrics-files.conf /usr/lib/tmpfiles.d/kheeper-vmetrics.conf
+COPY victoria-metrics.service /usr/lib/systemd/system/victoria-metrics.service
+COPY node-exporter.service /usr/lib/systemd/system/node-exporter.service
+
+COPY grafana.ini /etc/grafana/grafana.ini
+COPY grafana.service /usr/lib/systemd/system/grafana.service
+COPY grafana-provisioning/ /etc/grafana/provisioning/
+COPY grafana-dashboards/ /etc/grafana/dashboards/
+
+RUN systemctl enable victoria-metrics node-exporter grafana

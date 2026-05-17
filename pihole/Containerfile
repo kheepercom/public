@@ -1,0 +1,34 @@
+FROM kheeper.com/public/base:v0.1.0
+
+ARG PIHOLE_VERSION=2025.07.0
+
+RUN dnf install -y \
+	caddy \
+	&& dnf clean all \
+	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/caddy /var/log/* /tmp/* \
+	&& rm -rf /run/dnf /run/lock /run/log
+
+RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
+	&& firewall-offline-cmd --zone=public --add-port=443/tcp
+
+RUN systemctl enable caddy
+COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
+
+RUN mkdir -p /etc/systemd/resolved.conf.d
+COPY resolved-no-stub.conf /etc/systemd/resolved.conf.d/pihole-no-stub.conf
+
+COPY pihole.env.khtmpl /etc/kheeper/pihole.env.khtmpl
+COPY pihole-dns-allowlist.conf.khtmpl /etc/kheeper/pihole-dns-allowlist.conf.khtmpl
+
+COPY pihole-firewall.sh /usr/local/sbin/pihole-firewall.sh
+RUN chmod 0755 /usr/local/sbin/pihole-firewall.sh
+COPY pihole-firewall.service /usr/lib/systemd/system/pihole-firewall.service
+RUN systemctl enable pihole-firewall
+
+COPY pihole.container /usr/share/containers/systemd/pihole.container
+RUN sed -i "s/PIHOLE_VERSION_PLACEHOLDER/${PIHOLE_VERSION}/" /usr/share/containers/systemd/pihole.container
+
+COPY schema.json /etc/kheeper/schema.d/pihole.json
+COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-pihole.conf
+
+RUN bootc container lint

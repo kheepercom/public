@@ -1,0 +1,1 @@
+{{ .base.admin_authorized_keys }}

@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily wal-g retention sweep
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=30m
+Persistent=true
+Unit=walg-retention.service
+
+[Install]
+WantedBy=timers.target

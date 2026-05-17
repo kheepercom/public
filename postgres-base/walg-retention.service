@@ -1,0 +1,12 @@
+[Unit]
+Description=Prune wal-g base backups beyond retention window
+After=walg-base-backup.service kheeper-object-proxy.service kheeper-walg-env.service
+Wants=kheeper-object-proxy.service kheeper-walg-env.service
+ConditionPathExists=/etc/kheeper/walg.env
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+EnvironmentFile=/etc/kheeper/walg.env
+ExecStart=/usr/local/bin/wal-g delete retain FULL 7 --confirm

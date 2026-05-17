@@ -1,0 +1,14 @@
+[Unit]
+Description=wal-g base backup of PostgreSQL cluster
+After=postgresql.service kheeper-object-proxy.service kheeper-walg-env.service
+Wants=kheeper-object-proxy.service kheeper-walg-env.service
+Requires=postgresql.service
+ConditionPathExists=/etc/kheeper/walg.env
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+EnvironmentFile=/etc/kheeper/walg.env
+Environment=PGHOST=/var/run/postgresql
+ExecStart=/usr/local/bin/wal-g backup-push /var/lib/pgsql/data

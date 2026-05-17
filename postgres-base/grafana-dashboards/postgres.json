@@ -1,0 +1,276 @@
+{
+  "uid": "postgres-overview",
+  "title": "Postgres Overview",
+  "tags": ["postgres"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+        "query": "label_values(pg_up{job=\"postgres\"}, instance)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "selected": false, "text": "", "value": "" }
+      },
+      {
+        "name": "datname",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+        "query": "label_values(pg_stat_database_numbackends{job=\"postgres\",instance=~\"$instance\",datname!~\"|template.*\"}, datname)",
+        "refresh": 2,
+        "includeAll": true,
+        "multi": true,
+        "current": { "selected": true, "text": "All", "value": "$__all" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Up",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            { "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }
+          ],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+        }
+      },
+      "targets": [
+        { "expr": "pg_up{job=\"postgres\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Connections",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 } },
+      "targets": [
+        { "expr": "sum(pg_stat_database_numbackends{job=\"postgres\",instance=~\"$instance\"})", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Cache Hit Ratio",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 2,
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 0.95 },
+              { "color": "green", "value": 0.99 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(pg_stat_database_blks_hit{job=\"postgres\",instance=~\"$instance\"}[5m])) / clamp_min(sum(rate(pg_stat_database_blks_hit{job=\"postgres\",instance=~\"$instance\"}[5m]) + rate(pg_stat_database_blks_read{job=\"postgres\",instance=~\"$instance\"}[5m])), 1e-9)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        { "expr": "time() - pg_postmaster_start_time_seconds{job=\"postgres\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Transaction Rate",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "fillOpacity": 10, "lineWidth": 2 } } },
+      "targets": [
+        {
+          "expr": "sum(rate(pg_stat_database_xact_commit{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]))",
+          "legendFormat": "commits",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(pg_stat_database_xact_rollback{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]))",
+          "legendFormat": "rollbacks",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Cache Hit Ratio (over time)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (datname) (rate(pg_stat_database_blks_hit{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m])) / clamp_min(sum by (datname) (rate(pg_stat_database_blks_hit{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]) + rate(pg_stat_database_blks_read{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m])), 1e-9)",
+          "legendFormat": "{{ datname }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Tuple Write Rate",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "fillOpacity": 10, "lineWidth": 2 } } },
+      "targets": [
+        {
+          "expr": "sum(rate(pg_stat_database_tup_inserted{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]))",
+          "legendFormat": "inserts",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(pg_stat_database_tup_updated{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]))",
+          "legendFormat": "updates",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(pg_stat_database_tup_deleted{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]))",
+          "legendFormat": "deletes",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Connections by Database",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } } } },
+      "targets": [
+        {
+          "expr": "pg_stat_database_numbackends{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\",datname!=\"\"}",
+          "legendFormat": "{{ datname }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Database Size",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "fillOpacity": 10, "lineWidth": 2 } } },
+      "targets": [
+        {
+          "expr": "pg_database_size_bytes{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}",
+          "legendFormat": "{{ datname }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Locks by Mode",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "fillOpacity": 10, "lineWidth": 2, "stacking": { "mode": "normal" } } } },
+      "targets": [
+        {
+          "expr": "sum by (mode) (pg_locks_count{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"})",
+          "legendFormat": "{{ mode }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "WAL Archiving",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "fillOpacity": 10, "lineWidth": 2 } } },
+      "targets": [
+        {
+          "expr": "rate(pg_stat_archiver_archived_count{job=\"postgres\",instance=~\"$instance\"}[5m])",
+          "legendFormat": "archived",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(pg_stat_archiver_failed_count{job=\"postgres\",instance=~\"$instance\"}[5m])",
+          "legendFormat": "failed",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Last WAL Archive Age",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 6, "x": 12, "y": 28 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 300 },
+              { "color": "red", "value": 900 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        { "expr": "pg_stat_archiver_last_archive_age{job=\"postgres\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Deadlocks",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 6, "x": 18, "y": 28 },
+      "fieldConfig": { "defaults": { "unit": "ops", "custom": { "fillOpacity": 10, "lineWidth": 2 } } },
+      "targets": [
+        {
+          "expr": "sum by (datname) (rate(pg_stat_database_deadlocks{job=\"postgres\",instance=~\"$instance\",datname=~\"$datname\"}[5m]))",
+          "legendFormat": "{{ datname }}",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

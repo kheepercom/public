@@ -1,0 +1,17 @@
+[Unit]
+Description=Bootstrap Forgejo (inject domain, migrate, admin user)
+After=forgejo-db-init.service
+Requires=forgejo-db-init.service
+Before=forgejo.service
+
+[Service]
+Type=oneshot
+User=git
+Group=git
+RemainAfterExit=yes
+Environment=HOME=/var/lib/forgejo
+EnvironmentFile=/etc/kheeper/forgejo.env
+ExecStart=/usr/local/sbin/forgejo-init
+
+[Install]
+WantedBy=forgejo.service

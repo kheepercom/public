@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Public domain name resolving to this host. Used by Caddy for automatic TLS and as Forgejo's ROOT_URL / SSH_DOMAIN."
+    },
+    "admin_username": {
+      "type": "string",
+      "description": "Username for the initial admin account, created on first boot.",
+      "minLength": 1
+    },
+    "admin_password": {
+      "type": "string",
+      "description": "Password for the initial admin account. Create-only: editing this in config.json AFTER first boot will not rotate the admin password — rotate via `forgejo admin user change-password` over SSH.",
+      "minLength": 12
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Email for the initial admin account.",
+      "format": "email"
+    }
+  },
+  "required": ["domain", "admin_username", "admin_password", "admin_email"],
+  "additionalProperties": false
+}

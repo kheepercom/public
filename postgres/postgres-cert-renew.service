@@ -1,0 +1,9 @@
+[Unit]
+Description=Renew Let's Encrypt TLS certificate for PostgreSQL
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/var/lib/lego/issued-target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/postgres-cert-renew

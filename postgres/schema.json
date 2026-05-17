@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "domain_name": {
+      "type": "string",
+      "description": "Optional public domain name resolving to this host. If unset, the public IPv4 address is auto-detected via ifconfig.co and a short-lived IP certificate is issued instead."
+    },
+    "password": {
+      "type": "string",
+      "description": "Password for the postgres superuser. External clients connect over TLS as user 'postgres' with this password.",
+      "minLength": 16
+    }
+  },
+  "required": ["password"]
+}

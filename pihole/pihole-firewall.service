@@ -1,0 +1,13 @@
+[Unit]
+Description=Apply Pi-hole DNS source allowlist to firewalld
+After=firewalld.service
+Requires=firewalld.service
+Before=pihole.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/pihole-firewall.sh /etc/kheeper/pihole-dns-allowlist.conf
+
+[Install]
+WantedBy=multi-user.target

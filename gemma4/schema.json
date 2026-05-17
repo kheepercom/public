@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Public domain name resolving to this host. Used by Caddy for automatic TLS and as the externally-visible URL for the OpenAI-compatible API."
+    },
+    "api_key": {
+      "type": "string",
+      "description": "Bearer token clients must send as Authorization: Bearer <api_key>. Generate a random value ≥24 chars, e.g. `openssl rand -hex 24`. Rotation requires editing config.json and restarting gemma4-vllm.service (or rebooting).",
+      "minLength": 24
+    },
+    "max_model_len": {
+      "type": "integer",
+      "description": "vLLM context window in tokens. Default 32768. Larger values trade KV-cache capacity for longer contexts; 131072 (128k) is the model's maximum.",
+      "minimum": 1024,
+      "maximum": 131072,
+      "default": 32768
+    },
+    "gpu_memory_utilization": {
+      "type": "number",
+      "description": "Fraction of GPU VRAM vLLM will use for weights + KV cache. Default 0.95 on a dedicated host.",
+      "minimum": 0.5,
+      "maximum": 0.98,
+      "default": 0.95
+    }
+  },
+  "required": ["domain", "api_key"],
+  "additionalProperties": false
+}

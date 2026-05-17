@@ -1,0 +1,45 @@
+[Unit]
+Description=VictoriaMetrics single-node TSDB
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vmetrics
+Group=vmetrics
+StateDirectory=victoria-metrics
+StateDirectoryMode=0700
+# Heal ownership of pre-existing data if UIDs ever drift (no-op when matching).
+ExecStartPre=+/usr/bin/chown -R vmetrics:vmetrics /var/lib/victoria-metrics
+ExecStart=/usr/local/bin/victoria-metrics \
+    -httpListenAddr=127.0.0.1:8428 \
+    -storageDataPath=/var/lib/victoria-metrics \
+    -retentionPeriod=30d \
+    -promscrape.config=/etc/victoria-metrics/scrape.yml \
+    -promscrape.configCheckInterval=30s
+Restart=on-failure
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service @resources mincore
+SystemCallFilter=~@privileged
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,18 @@
+[Unit]
+Description=Initialize PostgreSQL database cluster on first boot
+Before=postgresql.service
+After=systemd-tmpfiles-setup.service
+Requires=systemd-tmpfiles-setup.service
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+# initdb if PG_VERSION is missing (first boot); skip otherwise so subsequent
+# boots only run the conf snippet append step.
+ExecStart=/bin/sh -c '[ -f /var/lib/pgsql/data/PG_VERSION ] || /usr/bin/initdb -D /var/lib/pgsql/data'
+ExecStartPost=/usr/local/sbin/postgresql-conf-init
+RemainAfterExit=yes
+
+[Install]
+WantedBy=postgresql.service

@@ -1,0 +1,123 @@
+FROM kheeper.com/public/metrics-base:v0.1.0
+
+ARG KERNEL_VERSION=7.0.8-200.fc44.x86_64
+# Open kmod source in RPM Fusion lags the proprietary driver. Pin userspace
+# to the version that has a matching kmod-nvidia-open build, otherwise nvml
+# fails with "Driver/library version mismatch" at runtime.
+# Version only; dnf will resolve to whatever -release the repo has for each
+# package (akmod-nvidia* is -2.fc44 while xorg-x11-drv-nvidia* is -1.fc44).
+ARG NVIDIA_DRIVER_VERSION=595.58.03
+ARG VLLM_IMAGE=docker.io/vllm/vllm-openai:v0.21.0
+
+# 1. RPM Fusion + open NVIDIA kmod compiled at build time for KERNEL_VERSION.
+#    RPM Fusion stopped shipping precompiled kmod-nvidia-open-<driver>-<kernel>
+#    packages on Fedora 44; the kmod-nvidia-open metapackage now contains no
+#    files and pulls in akmod-nvidia-open. We build the kmod here with akmods,
+#    then strip the toolchain.
+#
+#    Both akmod-nvidia (proprietary) and akmod-nvidia-open are installed at
+#    the same pinned version because xorg-x11-drv-nvidia depends on the
+#    virtual cap `nvidia-kmod`, which only the proprietary kmod provides at
+#    dnf-resolve time. We then build ONLY the open kmod via
+#    `akmods --kmod nvidia-open`, so no proprietary nvidia.ko ends up in
+#    /lib/modules and modprobe loads the open one at boot.
+#
+#    Also block nouveau via kargs + modprobe so the open driver can bind the
+#    GPU at boot instead of losing the race.
+RUN dnf install -y \
+		https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-44.noarch.rpm \
+	&& dnf install -y python3-dnf-plugin-versionlock \
+	&& dnf install -y --exclude='xorg-x11-drv-nvidia-580xx*' \
+		akmods \
+		akmod-nvidia-${NVIDIA_DRIVER_VERSION} \
+		akmod-nvidia-open-${NVIDIA_DRIVER_VERSION} \
+		kernel-devel-${KERNEL_VERSION} \
+		xorg-x11-drv-nvidia-${NVIDIA_DRIVER_VERSION} \
+		xorg-x11-drv-nvidia-cuda-${NVIDIA_DRIVER_VERSION} \
+		xorg-x11-drv-nvidia-cuda-libs-${NVIDIA_DRIVER_VERSION} \
+		xorg-x11-drv-nvidia-libs-${NVIDIA_DRIVER_VERSION} \
+		xorg-x11-drv-nvidia-kmodsrc-${NVIDIA_DRIVER_VERSION} \
+		xorg-x11-drv-nvidia-power-${NVIDIA_DRIVER_VERSION} \
+		nvidia-modprobe-${NVIDIA_DRIVER_VERSION} \
+		nvidia-persistenced-${NVIDIA_DRIVER_VERSION} \
+		nvidia-settings-${NVIDIA_DRIVER_VERSION} \
+	&& akmods --force --kernels ${KERNEL_VERSION} --kmod nvidia-open \
+	&& depmod -a ${KERNEL_VERSION} \
+	&& dnf versionlock add 'kernel-*' 'akmod-nvidia*' 'kmod-nvidia*' 'xorg-x11-drv-nvidia*' 'nvidia-modprobe' 'nvidia-persistenced' 'nvidia-settings' \
+	&& systemctl enable nvidia-persistenced \
+	&& dnf clean all \
+	&& rm -rf /var/cache/akmods
+
+# 1b. Block nouveau so the GPU isn't claimed by the wrong driver at boot.
+#     Both pieces are needed: kargs.d covers early-userspace + kernel cmdline
+#     across upgrades; modprobe.d catches anything that tries to load it later.
+COPY 10-nvidia.toml /usr/lib/bootc/kargs.d/10-nvidia.toml
+COPY block-nouveau.conf /etc/modprobe.d/block-nouveau.conf
+
+# 2. NVIDIA Container Toolkit (CDI) for Podman GPU passthrough.
+#    metrics-base ships /etc/ssl/certs/ca-bundle.crt but not the canonical
+#    /etc/pki/tls/certs/ca-bundle.crt that libcurl-built-against-NSS expects,
+#    which makes dnf fail to fetch the NVIDIA repo metadata. Create the
+#    missing symlink before adding the repo.
+RUN ln -sf /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/pki/tls/certs/ca-bundle.crt \
+	&& curl -sL https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo \
+		-o /etc/yum.repos.d/nvidia-container-toolkit.repo \
+	&& dnf install -y nvidia-container-toolkit \
+	&& dnf clean all
+
+# 3. Register /usr/lib/containers/storage as an additional image store so the
+#    pre-pulled vLLM container is discoverable at runtime without using /var
+#    (which is machine state in bootc).
+RUN install -d -m 0755 /usr/lib/containers/storage /etc/containers/storage.conf.d
+COPY containers-storage.conf /etc/containers/storage.conf.d/10-gemma4.conf
+
+# 4. Pre-pull vLLM container into the additional image store.
+#    Skopeo unpacks each layer in its own user namespace via c/storage; that
+#    namespace reads /etc/subuid + /etc/subgid from inside this build container.
+#    The base image ships them empty, so unpacking fails when a layer file is
+#    owned by a non-root group (e.g. /etc/gshadow root:shadow == 0:42). Seed
+#    the maps just for this step. The entries don't affect the runtime image:
+#    nothing in the booted host does rootless container nesting.
+RUN dnf install -y skopeo \
+	&& echo "root:100000:65536" >> /etc/subuid \
+	&& echo "root:100000:65536" >> /etc/subgid \
+	&& skopeo copy --quiet \
+		docker://${VLLM_IMAGE} \
+		"containers-storage:[overlay@/usr/lib/containers/storage+/tmp/skopeo-tmp]${VLLM_IMAGE}" \
+	&& dnf clean all \
+	&& rm -rf /tmp/skopeo-tmp
+
+# 5. Bake the model (~59 GB). Single big layer.
+COPY --chmod=0444 model/ /usr/share/gemma4/model/
+
+# 6. Firewall: 80/443 only; vLLM stays on loopback
+RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
+	&& firewall-offline-cmd --zone=public --add-port=443/tcp
+
+# 7. Caddy
+RUN dnf install -y caddy && systemctl enable caddy && dnf clean all
+COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
+
+# 8. Grafana sub-path support
+COPY grafana-subpath.env.khtmpl /etc/kheeper/grafana-subpath.env.khtmpl
+RUN install -d -m 0755 /usr/lib/systemd/system/grafana.service.d
+COPY grafana-subpath.conf /usr/lib/systemd/system/grafana.service.d/10-gemma4.conf
+
+# 9. vLLM quadlet + env template + CDI init
+COPY gemma4-vllm.container /usr/share/containers/systemd/gemma4-vllm.container
+COPY gemma4-vllm.env.khtmpl /etc/kheeper/gemma4-vllm.env.khtmpl
+COPY gemma4-cdi-init.service /usr/lib/systemd/system/gemma4-cdi-init.service
+COPY --chmod=0755 gemma4-cdi-init.sh /usr/local/sbin/gemma4-cdi-init
+RUN systemctl enable gemma4-cdi-init
+
+# 10. tmpfiles.d
+COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-gemma4.conf
+
+# 11. Metrics + dashboard
+COPY gemma4-scrape.json /etc/victoria-metrics/scrape.d/gemma4.json
+COPY grafana-dashboards/gemma4.json /etc/grafana/dashboards/gemma4.json
+
+# 12. Schema
+COPY schema.json /etc/kheeper/schema.d/gemma4.json
+
+RUN bootc container lint

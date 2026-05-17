@@ -1,0 +1,3 @@
+{{ .pihole.domain }} {
+	reverse_proxy localhost:8053
+}

@@ -1,0 +1,54 @@
+FROM kheeper.com/public/metrics-base:v0.1.0
+
+ARG WALG_VERSION=v3.0.8
+
+RUN dnf install -y \
+	postgresql-server \
+	&& dnf clean all \
+	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/log/* /tmp/* \
+	&& rm -rf /run/dnf /run/lock /run/log
+
+RUN curl -LO https://github.com/wal-g/wal-g/releases/download/${WALG_VERSION}/wal-g-pg-24.04-amd64.tar.gz \
+	&& tar xzf wal-g-pg-24.04-amd64.tar.gz -C /usr/local/bin --transform 's/wal-g-pg-24.04-amd64/wal-g/' \
+	&& rm wal-g-pg-24.04-amd64.tar.gz
+
+ARG POSTGRES_EXPORTER_VERSION=0.19.1
+
+RUN curl -LO https://github.com/prometheus-community/postgres_exporter/releases/download/v${POSTGRES_EXPORTER_VERSION}/postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz \
+	&& tar xzf postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz -C /usr/local/bin --strip-components=1 postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64/postgres_exporter \
+	&& rm postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz
+
+ARG KHEEPER_VERSION=v0.5.0
+
+RUN curl -LO https://github.com/kheepercom/homebrew-tap/releases/download/${KHEEPER_VERSION}/kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz \
+	&& tar xzf kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz -C /usr/local/bin kheeper docker-credential-kheeper \
+	&& chmod 0755 /usr/local/bin/kheeper /usr/local/bin/docker-credential-kheeper \
+	&& rm kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz
+
+COPY postgres-exporter.service /usr/lib/systemd/system/postgres-exporter.service
+COPY postgres-exporter.json /etc/victoria-metrics/scrape.d/postgres.json
+COPY grafana-dashboards/postgres.json /etc/grafana/dashboards/postgres.json
+
+COPY postgresql-init.service /usr/lib/systemd/system/postgresql-init.service
+COPY --chmod=0755 postgresql-conf-init.sh /usr/local/sbin/postgresql-conf-init
+COPY 10-listen.conf /etc/kheeper/postgresql-conf.d/10-listen.conf
+COPY 20-walg.conf /etc/kheeper/postgresql-conf.d/20-walg.conf
+
+# wal-g via the localhost object-proxy: the proxy adapts wal-g to Kheeper's
+# object store, authenticating to objects.kheeper.com with the host JWT.
+COPY kheeper-object-proxy.service /usr/lib/systemd/system/kheeper-object-proxy.service
+COPY kheeper-walg-env.service /usr/lib/systemd/system/kheeper-walg-env.service
+COPY walg-base-backup.service /usr/lib/systemd/system/walg-base-backup.service
+COPY walg-base-backup.timer /usr/lib/systemd/system/walg-base-backup.timer
+COPY walg-retention.service /usr/lib/systemd/system/walg-retention.service
+COPY walg-retention.timer /usr/lib/systemd/system/walg-retention.timer
+
+RUN install -d -m 0755 /usr/lib/systemd/system/postgresql.service.d
+COPY postgresql.service.d-walg.conf /usr/lib/systemd/system/postgresql.service.d/walg.conf
+COPY postgresql.service.d-exporter.conf /usr/lib/systemd/system/postgresql.service.d/exporter.conf
+
+RUN systemctl enable postgresql-init postgresql postgres-exporter \
+	kheeper-object-proxy.service kheeper-walg-env.service \
+	walg-base-backup.timer walg-retention.timer
+
+RUN bootc container lint

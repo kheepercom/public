@@ -1,0 +1,201 @@
+{
+  "uid": "node-overview",
+  "title": "Node Overview",
+  "tags": ["node", "system"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+        "query": "label_values(node_uname_info, instance)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "selected": false, "text": "", "value": "" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "CPU Used %",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 70 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - avg by (instance) (rate(node_cpu_seconds_total{mode=\"idle\",instance=~\"$instance\"}[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Memory Used %",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 75 },
+              { "color": "red", "value": 90 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - node_memory_MemAvailable_bytes{instance=~\"$instance\"} / node_memory_MemTotal_bytes{instance=~\"$instance\"})",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Load (1m)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "decimals": 2 }
+      },
+      "targets": [
+        { "expr": "node_load1{instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Uptime",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "s" } },
+      "targets": [
+        {
+          "expr": "time() - node_boot_time_seconds{instance=~\"$instance\"}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Filesystem Used %",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * (1 - node_filesystem_avail_bytes{instance=~\"$instance\",fstype!~\"tmpfs|overlay|squashfs|ramfs|devtmpfs\"} / node_filesystem_size_bytes{instance=~\"$instance\",fstype!~\"tmpfs|overlay|squashfs|ramfs|devtmpfs\"})",
+          "legendFormat": "{{ mountpoint }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Filesystem Free (GiB)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "node_filesystem_avail_bytes{instance=~\"$instance\",fstype!~\"tmpfs|overlay|squashfs|ramfs|devtmpfs\"} / 1024 / 1024 / 1024",
+          "legendFormat": "{{ mountpoint }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Disk I/O (bytes/sec)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(node_disk_read_bytes_total{instance=~\"$instance\"}[5m])",
+          "legendFormat": "read {{ device }}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(node_disk_written_bytes_total{instance=~\"$instance\"}[5m])",
+          "legendFormat": "write {{ device }}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Network Throughput (bytes/sec)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(node_network_receive_bytes_total{instance=~\"$instance\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
+          "legendFormat": "rx {{ device }}",
+          "refId": "A"
+        },
+        {
+          "expr": "rate(node_network_transmit_bytes_total{instance=~\"$instance\",device!~\"lo|veth.*|docker.*|br-.*\"}[5m])",
+          "legendFormat": "tx {{ device }}",
+          "refId": "B"
+        }
+      ]
+    }
+  ]
+}

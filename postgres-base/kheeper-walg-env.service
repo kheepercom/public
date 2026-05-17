@@ -1,0 +1,15 @@
+[Unit]
+Description=Render /etc/kheeper/walg.env from this host's identity
+After=network-online.target
+Wants=network-online.target
+Before=postgresql.service walg-base-backup.service walg-retention.service
+ConditionPathExists=/etc/kheeper/default/identity.json
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+Environment=KHEEPER_CONFIG=/etc/kheeper
+ExecStart=/bin/sh -c '/usr/local/bin/kheeper hosts me --env > /etc/kheeper/walg.env.tmp && install -m 0644 /etc/kheeper/walg.env.tmp /etc/kheeper/walg.env && rm /etc/kheeper/walg.env.tmp'
+
+[Install]
+WantedBy=multi-user.target

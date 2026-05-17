@@ -1,0 +1,70 @@
+{
+  "uid": "forgejo-overview",
+  "title": "Forgejo Overview",
+  "tags": ["forgejo"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+        "query": "label_values(go_info{job=\"forgejo\"}, instance)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "selected": false, "text": "", "value": "" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Users",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 } },
+      "targets": [
+        { "expr": "gitea_users{job=\"forgejo\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Repositories",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "short", "decimals": 0 } },
+      "targets": [
+        { "expr": "gitea_repositories{job=\"forgejo\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Metrics scrape rate",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        { "expr": "sum by (code) (rate(promhttp_metric_handler_requests_total{job=\"forgejo\",instance=~\"$instance\"}[5m]))", "legendFormat": "{{code}}", "refId": "A" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Process resident memory",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": { "defaults": { "unit": "bytes" } },
+      "targets": [
+        { "expr": "process_resident_memory_bytes{job=\"forgejo\",instance=~\"$instance\"}", "refId": "A" }
+      ]
+    }
+  ]
+}

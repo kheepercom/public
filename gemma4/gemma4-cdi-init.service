@@ -1,0 +1,13 @@
+[Unit]
+Description=Generate NVIDIA CDI spec for Podman
+After=local-fs.target
+ConditionPathExists=!/etc/cdi/nvidia.yaml
+Before=gemma4-vllm.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/gemma4-cdi-init
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

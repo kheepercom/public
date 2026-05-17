@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "admin_authorized_keys": {
+      "type": "string",
+      "description": "SSH public key(s) to authorize for the admin user. One per line.",
+      "examples": ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIejEeahz+QW4A63fURCWLq93O87IQdqRes/Wv04/PsI"]
+    }
+  },
+  "additionalProperties": false
+}

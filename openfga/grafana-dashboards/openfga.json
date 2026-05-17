@@ -1,0 +1,191 @@
+{
+  "uid": "openfga-overview",
+  "title": "OpenFGA Overview",
+  "tags": ["openfga"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "instance",
+        "type": "query",
+        "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+        "query": "label_values(go_info{job=\"openfga\"}, instance)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "current": { "selected": false, "text": "", "value": "" }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Request Rate (req/s)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps", "decimals": 2 } },
+      "targets": [
+        {
+          "expr": "sum(rate(grpc_server_handled_total{job=\"openfga\",instance=~\"$instance\"}[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Error Rate %",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * sum(rate(grpc_server_handled_total{job=\"openfga\",instance=~\"$instance\",grpc_code!=\"OK\"}[5m])) / clamp_min(sum(rate(grpc_server_handled_total{job=\"openfga\",instance=~\"$instance\"}[5m])), 1e-9)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "p99 Latency",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "ms", "decimals": 1 } },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(grpc_server_handling_seconds_bucket{job=\"openfga\",instance=~\"$instance\"}[5m]))) * 1000",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Goroutines",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "short" } },
+      "targets": [
+        {
+          "expr": "go_goroutines{job=\"openfga\",instance=~\"$instance\"}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Request Rate by Method",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (grpc_method) (rate(grpc_server_handled_total{job=\"openfga\",instance=~\"$instance\"}[5m]))",
+          "legendFormat": "{{ grpc_method }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Latency Quantiles",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(grpc_server_handling_seconds_bucket{job=\"openfga\",instance=~\"$instance\"}[5m]))) * 1000",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(grpc_server_handling_seconds_bucket{job=\"openfga\",instance=~\"$instance\"}[5m]))) * 1000",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(grpc_server_handling_seconds_bucket{job=\"openfga\",instance=~\"$instance\"}[5m]))) * 1000",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Datastore Query Rate",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (grpc_method) (rate(datastore_query_count_count{job=\"openfga\",instance=~\"$instance\"}[5m]))",
+          "legendFormat": "{{ grpc_method }}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Memory (RSS)",
+      "datasource": { "type": "prometheus", "uid": "VictoriaMetrics" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "fillOpacity": 10, "lineWidth": 2 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=\"openfga\",instance=~\"$instance\"}",
+          "legendFormat": "rss",
+          "refId": "A"
+        },
+        {
+          "expr": "go_memstats_heap_inuse_bytes{job=\"openfga\",instance=~\"$instance\"}",
+          "legendFormat": "heap in-use",
+          "refId": "B"
+        }
+      ]
+    }
+  ]
+}

@@ -2,29 +2,76 @@
 
 [Homepage](https://openfga.dev)
 
-[GitHub](https://github.com/openfga)
+[GitHub](https://github.com/openfga/openfga)
 
 > OpenFGA is an open-source authorization solution that allows developers to build granular access control using an easy-to-read modeling language and friendly APIs.
 
-Operate OpenFGA on your server with persistence provided by Postgres andautomatic TLS provided by [Caddy](https://caddyserver.com).
+Operate OpenFGA on your server with persistence in a local Postgres and automatic TLS provided by [Caddy](https://caddyserver.com).
 
-## Launch
+## Configuration
 
-Follow the [cloud] or [bare metal] guide to register a host, and set a DNS record to resolve to the host.
+| Field | Description |
+| ----- | ----------- |
+| `domain` | Public domain resolving to this host. Used by Caddy for automatic TLS. After your host autoregisters it will have a DNS record at `<host>.<org>.kheeper.app` that you can use. |
+| `key` | Preshared API key. Clients authenticate by sending `Authorization: Bearer <key>`. Minimum 16 characters. |
+
+## Launch on GCP
+
+Connect your GCP project to your kheeper org (once per project):
 
 ```
-kheeper start kheeper.com/public/openfga:latest
+ORG=<your-kheeper-org>
+PROJECT_NUMBER=$(gcloud projects describe $(gcloud config get project) --format='value(projectNumber)')
+kheeper clouds create my-gcp --org $ORG --project-number $PROJECT_NUMBER
 ```
 
-That will save a default config file to ./config.json.
-Edit that file, ensuring the provided domain re
+Open the firewall rules OpenFGA needs. The image's host firewall opens `80/tcp` and `443/tcp` from anywhere; the cloud-side firewall must match:
 
 ```
-ORG=my-organization
+# 80/443 for ACME and the OpenFGA HTTPS API
+gcloud compute firewall-rules create allow-https \
+    --allow tcp:80,tcp:443 \
+    --target-tags allow-https
+```
+
+Create the VM:
+
+```
 HOST=my-openfga
+gcloud compute instances create $HOST \
+    --image-family fedora-bootc --image-project kheeper \
+    --zone us-central1-a \
+    --machine-type c4-standard-2 \
+    --boot-disk-size 40GB \
+    --tags=allow-https
+```
 
+The host auto-registers within a minute and gets a DNS A record at `$HOST.$ORG.kheeper.app` you can use for `domain`. Confirm:
+
+```
+kheeper hosts list --org $ORG
+```
+
+While the host is starting, configure your first release:
+
+```
+kheeper releases start config.json --image kheeper.com/public/openfga:v0.1.0
+```
+
+That writes a default `./config.json`. Edit it so `domain` matches your DNS record and set `key` to a strong preshared secret. Then create and activate the release:
+
+```
 kheeper releases create $ORG/$HOST:v1 \
-    --image kheeper.com/public/openfga:latest \
+    --image kheeper.com/public/openfga:v0.1.0 \
     --config-file config.json \
     --activate
 ```
+
+`$ORG/$HOST:v1` is your release tag; `kheeper.com/public/openfga:v0.1.0` is the image it's built from.
+
+## Alternative platforms
+
+- [Bare metal](https://kheeper.com/docs/getting-started/boot-bare-metal) — register a physical host via iPXE
+- [AWS](https://kheeper.com/docs/getting-started/boot-aws) — same flow as GCP using EC2 + a security group
+
+In both cases, replicate the firewall section above on your cloud / network: `80/443` from anywhere.

@@ -1,0 +1,24 @@
+# latest quay.io/fedora/fedora-bootc:44-x86_64
+FROM quay.io/fedora/fedora-bootc@sha256:3635a8badef63c941b2e7120f8e17bc2c3ea4ac49b4edbd91b096aef26b54b4a
+
+RUN dnf makecache
+
+RUN dnf install -y firewalld && systemctl enable firewalld
+RUN firewall-offline-cmd --remove-service=dhcpv6-client \
+	&& firewall-offline-cmd --remove-service=mdns \
+	&& firewall-offline-cmd --remove-service=ssh \
+	&& firewall-offline-cmd --zone=public --add-port=22/tcp
+
+COPY admin.sysusers /usr/lib/sysusers.d/admin.conf
+RUN useradd --uid 1000 --create-home --shell /bin/bash admin \
+	&& rm -f /var/home/admin/.bash_logout /var/home/admin/.bash_profile /var/home/admin/.bashrc
+COPY authorized_keys.khtmpl /usr/share/factory/var/home/admin/.ssh/authorized_keys.khtmpl
+COPY ssh-files.conf /usr/lib/tmpfiles.d/kheeper-base.conf
+COPY sshd.conf /etc/ssh/sshd_config.d/10-kheeper-base.conf
+COPY admin.sudoers /etc/sudoers.d/admin
+RUN chmod 0440 /etc/sudoers.d/admin
+RUN passwd -l root
+
+COPY journald.conf /etc/systemd/journald.conf.d/10-kheeper-base.conf
+
+COPY schema.json /etc/kheeper/schema.d/base.json

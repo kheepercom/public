@@ -1,0 +1,3 @@
+{{ .forgejo.domain }} {
+	reverse_proxy localhost:3500
+}

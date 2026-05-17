@@ -1,0 +1,19 @@
+[Unit]
+Description=Pi-hole DNS sinkhole
+Wants=network-online.target
+After=network-online.target
+
+[Container]
+Image=docker.io/pihole/pihole:PIHOLE_VERSION_PLACEHOLDER
+EnvironmentFile=/etc/kheeper/pihole.env
+PublishPort=53:53/tcp
+PublishPort=53:53/udp
+PublishPort=[::]:53:53/tcp
+PublishPort=[::]:53:53/udp
+PublishPort=127.0.0.1:8053:80
+Volume=/var/lib/pihole/etc-pihole:/etc/pihole:Z
+Volume=/var/lib/pihole/etc-dnsmasq:/etc/dnsmasq.d:Z
+AddCapability=NET_ADMIN
+
+[Install]
+WantedBy=multi-user.target

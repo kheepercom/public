@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Public domain name resolving to this host. Used by Caddy for automatic TLS on the admin UI."
+    },
+    "admin_password": {
+      "type": "string",
+      "description": "Password for the Pi-hole admin web UI.",
+      "minLength": 8
+    },
+    "dns_allowed_cidrs": {
+      "type": "array",
+      "description": "Source CIDRs allowed to query DNS on port 53. Pi-hole MUST NOT be exposed as an open resolver.",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "upstream_dns": {
+      "type": "array",
+      "description": "Upstream DNS resolvers Pi-hole forwards to. Defaults to Cloudflare and Quad9 if omitted.",
+      "items": { "type": "string" },
+      "default": ["1.1.1.1", "9.9.9.9"]
+    }
+  },
+  "required": ["domain", "admin_password", "dns_allowed_cidrs"],
+  "additionalProperties": false
+}

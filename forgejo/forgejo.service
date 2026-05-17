@@ -1,0 +1,44 @@
+[Unit]
+Description=Forgejo Git Forge
+After=postgresql.service forgejo-init.service
+Requires=postgresql.service forgejo-init.service
+
+[Service]
+User=git
+Group=git
+WorkingDirectory=/var/lib/forgejo
+Environment=USER=git
+Environment=HOME=/var/lib/forgejo
+Environment=FORGEJO_WORK_DIR=/var/lib/forgejo
+
+ExecStart=/usr/local/bin/forgejo web --config /etc/forgejo/app.ini
+Restart=always
+RestartSec=2s
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/forgejo /var/run/postgresql /etc/forgejo
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+# Changelog
+
+## v0.1.0
+
+### Features
+
+- OpenFGA v1.14.1 with runtime config rendered from kheeper host config
+- Caddy reverse proxy with automatic TLS via Let's Encrypt
+- Firewall opens `80/tcp` and `443/tcp` for ACME and HTTPS
+- Runs as a dedicated `openfga` system user against an `openfga` role and database (peer auth over the postgres unix socket); `openfga-db-init.service` provisions both idempotently on first boot
+- vmsingle scrape config and Grafana dashboard for OpenFGA metrics on `127.0.0.1:2112`

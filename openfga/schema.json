@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Public domain name resolving to this host. Used by Caddy for automatic TLS."
+    },
+    "key": {
+      "type": "string",
+      "description": "OpenFGA preshared API key used to authenticate.",
+      "minLength": 16
+    }
+  },
+  "required": ["domain", "key"],
+  "additionalProperties": false
+}

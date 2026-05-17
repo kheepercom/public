@@ -1,0 +1,16 @@
+[Unit]
+Description=Obtain Let's Encrypt TLS certificate for PostgreSQL
+After=network-online.target postgresql-init.service
+Wants=network-online.target
+Requires=postgresql-init.service
+Before=postgresql.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/kheeper/postgres-cert.env
+ExecStart=/usr/local/sbin/postgres-cert-issue
+ExecStartPost=/bin/sh -c "grep -q '^ssl = on' /var/lib/pgsql/data/postgresql.conf || echo 'ssl = on' >> /var/lib/pgsql/data/postgresql.conf"
+RemainAfterExit=yes
+
+[Install]
+WantedBy=postgresql.service

@@ -1,0 +1,46 @@
+[Unit]
+Description=PostgreSQL Prometheus exporter
+After=postgresql.service
+BindsTo=postgresql.service
+PartOf=postgresql.service
+
+[Service]
+User=postgres
+Group=postgres
+
+Environment=DATA_SOURCE_NAME=postgresql:///postgres?host=/var/run/postgresql&sslmode=disable
+
+ExecStart=/usr/local/bin/postgres_exporter \
+    --web.listen-address=127.0.0.1:9187
+
+Restart=on-failure
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+ReadWritePaths=/var/run/postgresql
+
+[Install]
+WantedBy=multi-user.target

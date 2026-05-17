@@ -1,0 +1,11 @@
+[Unit]
+Description=Daily wal-g base backup
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=30m
+Persistent=true
+Unit=walg-base-backup.service
+
+[Install]
+WantedBy=timers.target

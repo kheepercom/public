@@ -1,0 +1,46 @@
+[Unit]
+Description=Prometheus node_exporter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=vmetrics
+Group=vmetrics
+ExecStart=/usr/local/bin/node_exporter \
+    --web.listen-address=127.0.0.1:9100 \
+    --collector.disable-defaults \
+    --collector.cpu \
+    --collector.loadavg \
+    --collector.meminfo \
+    --collector.filesystem \
+    --collector.diskstats \
+    --collector.netdev \
+    --collector.uname \
+    --collector.time
+Restart=on-failure
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

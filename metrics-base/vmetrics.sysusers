@@ -1,0 +1,4 @@
+g vmetrics 995 -
+u vmetrics 992:995 "VictoriaMetrics" /nonexistent /sbin/nologin
+g grafana 970 -
+u grafana 970:970 "Grafana" /usr/share/grafana /sbin/nologin
