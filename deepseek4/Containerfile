@@ -1,6 +1,6 @@
 FROM kheeper.com/public/llm-base:v0.1.0
 
-# Model weights (~59 GB). Single big layer.
+# Model weights.
 COPY --chmod=0444 model/ /usr/share/llm/model/
 
 # Static env: the model identity vLLM advertises on /v1/models.

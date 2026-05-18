@@ -1,6 +1,6 @@
 {
-  "uid": "gemma4-vllm",
-  "title": "Gemma 4 vLLM",
+  "uid": "llm-vllm",
+  "title": "vLLM",
   "schemaVersion": 39,
   "version": 1,
   "refresh": "30s",

@@ -1,4 +1,4 @@
-# gemma4 maintainer notes
+# llm-base maintainer notes
 
 What to check / update when the underlying components move, and the
 non-obvious constraints on editing files in this directory.
@@ -64,7 +64,7 @@ NVIDIA package in the image. To bump:
    that bundles all driver versions). Confirm the new pin's blobs are
    shipped:
    ```
-   sudo podman run --rm --entrypoint=/bin/sh kheeper.com/.../gemma4:vX -c \
+   sudo podman run --rm --entrypoint=/bin/sh kheeper.com/public/llm-base:vX -c \
      "ls /lib/firmware/nvidia/${NVIDIA_DRIVER_VERSION}/"
    ```
    Should list `gsp_ga10x.bin`, etc. If the directory is missing, the
@@ -77,7 +77,7 @@ NVIDIA package in the image. To bump:
 
 ## When vLLM bumps (`ARG VLLM_IMAGE`)
 
-`ARG VLLM_IMAGE` and the `Image=` line in `gemma4-vllm.container` must be
+`ARG VLLM_IMAGE` and the `Image=` line in `llm-vllm.container` must be
 kept in sync. They are **not** the same variable:
 
 - The ARG controls which image `skopeo` pre-pulls into the additional image
@@ -107,25 +107,38 @@ defaults — long generations time out.
 
 ## Editing the vLLM quadlet
 
-Two non-obvious bits in `gemma4-vllm.container`:
+Non-obvious bits in `llm-vllm.container`:
 
-- The `[Service]` section needs `EnvironmentFile=/etc/kheeper/gemma4-vllm.env`.
+- The `[Service]` section needs both `EnvironmentFile=` lines (for
+  `/etc/kheeper/llm-vllm-model.env` and `/etc/kheeper/llm-vllm.env`).
   `EnvironmentFile=` in `[Container]` only feeds the *container's* env
-  (via `podman --env-file`); systemd's `${VLLM_API_KEY}` expansion in
-  `Exec=` happens **before** podman runs, so without an `[Service]`
-  EnvironmentFile those expand to empty strings and vLLM gets
-  `--api-key '' --max-model-len ''` (the latter is a fatal error).
+  (via `podman --env-file`); systemd's `${VLLM_API_KEY}` /
+  `${VLLM_SERVED_MODEL_NAME}` expansion in `Exec=` happens **before**
+  podman runs, so without `[Service]` EnvironmentFiles those expand to
+  empty strings and vLLM gets `--api-key '' --max-model-len ''`
+  (the latter is a fatal error).
 
-- Model volume must be `Volume=/usr/share/gemma4/model:/model:ro` — **no
+- The split between `llm-vllm.env` (user-tunable, rendered from
+  `llm-vllm.env.khtmpl`) and `llm-vllm-model.env` (static, shipped by the
+  leaf image with `VLLM_SERVED_MODEL_NAME=...`) is deliberate: the model
+  identity is part of the image, not configuration.
+
+- Model volume must be `Volume=/usr/share/llm/model:/model:ro` — **no
   `:Z` flag**. `Z` triggers an SELinux relabel of the source dir, which
   fails on bootc's read-only composefs `/usr` with `lsetxattr ... EROFS`
   before the container even starts.
 
-- Adding a new env var to `gemma4-vllm.env.khtmpl`? Also add the
+- Adding a new env var to `llm-vllm.env.khtmpl`? Also add the
   corresponding `--<flag> ${VAR}` to `Exec=`, and (if it's a runtime
   knob) expose it in `schema.json` with sensible defaults.
 
-## Editing `gemma4-cdi-init.sh`
+- `$VLLM_EXTRA_ARGS` at the tail of `Exec=` is **unbraced on purpose** —
+  systemd word-splits `$VAR` but treats `${VAR}` as a single argument
+  (systemd.service(5)). Leaves use it to inject multi-flag model-specific
+  tuning (`--trust-remote-code`, custom parsers, etc.) without touching
+  the base. Don't add braces around it. Don't quote it.
+
+## Editing `llm-cdi-init.sh`
 
 The whole script body is one command: `nvidia-ctk cdi generate
 --output=/etc/cdi/nvidia.yaml`. Don't add `nvidia-ctk runtime configure
@@ -135,7 +148,7 @@ even though the CDI spec is already written. Podman picks up CDI devices
 directly from `--device nvidia.com/gpu=all` in the quadlet without any
 runtime configuration step.
 
-The `gemma4-cdi-init.service` unit has `ConditionPathExists=!/etc/cdi/nvidia.yaml`
+The `llm-cdi-init.service` unit has `ConditionPathExists=!/etc/cdi/nvidia.yaml`
 so it only runs once per boot, on the first attempt where the spec doesn't
 exist. That's intentional.
 

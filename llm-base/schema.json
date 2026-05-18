@@ -8,14 +8,13 @@
     },
     "api_key": {
       "type": "string",
-      "description": "Bearer token clients must send as Authorization: Bearer <api_key>. Generate a random value ≥24 chars, e.g. `openssl rand -hex 24`. Rotation requires editing config.json and restarting gemma4-vllm.service (or rebooting).",
+      "description": "Bearer token clients must send as Authorization: Bearer <api_key>. Generate a random value ≥24 chars, e.g. `openssl rand -hex 24`. Rotation requires editing config.json and restarting llm-vllm.service (or rebooting).",
       "minLength": 24
     },
     "max_model_len": {
       "type": "integer",
-      "description": "vLLM context window in tokens. Default 32768. Larger values trade KV-cache capacity for longer contexts; 131072 (128k) is the model's maximum.",
+      "description": "vLLM context window in tokens. Default 32768. Larger values trade KV-cache capacity for longer contexts; cap depends on the baked model.",
       "minimum": 1024,
-      "maximum": 131072,
       "default": 32768
     },
     "gpu_memory_utilization": {

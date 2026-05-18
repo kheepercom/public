@@ -1,0 +1,39 @@
+[Unit]
+Description=vLLM inference server
+After=llm-cdi-init.service network-online.target
+Requires=llm-cdi-init.service
+Wants=network-online.target
+
+[Container]
+Image=docker.io/vllm/vllm-openai:v0.21.0
+ContainerName=llm-vllm
+# Two files: llm-vllm-model.env is the static, model-specific env shipped by
+# the leaf image (sets VLLM_SERVED_MODEL_NAME, etc.); llm-vllm.env is rendered
+# from the user's config and holds the tunables (api_key, context length).
+EnvironmentFile=/etc/kheeper/llm-vllm-model.env
+EnvironmentFile=/etc/kheeper/llm-vllm.env
+PublishPort=127.0.0.1:8000:8000
+# No Z: the model lives in /usr (ostree composefs, read-only). Its label was
+# set at image build time; the runtime relabel that ":Z" triggers fails with
+# lsetxattr EROFS on bootc hosts.
+Volume=/usr/share/llm/model:/model:ro
+Volume=/var/lib/vllm:/root/.cache:Z
+AddDevice=nvidia.com/gpu=all
+SecurityLabelDisable=true
+# $VLLM_EXTRA_ARGS is intentionally unbraced so systemd word-splits it into
+# multiple argv entries. Leaf images set it in llm-vllm-model.env to pass
+# model-specific flags (e.g. --trust-remote-code, --kv-cache-dtype fp8). Empty
+# or unset is fine.
+Exec=--model /model --served-model-name ${VLLM_SERVED_MODEL_NAME} --api-key ${VLLM_API_KEY} --max-model-len ${VLLM_MAX_MODEL_LEN} --gpu-memory-utilization ${VLLM_GPU_MEM_UTIL} --host 0.0.0.0 --port 8000 $VLLM_EXTRA_ARGS
+
+[Service]
+# Loaded into the systemd unit so ${VLLM_*} in Exec= expands. EnvironmentFile=
+# in [Container] only feeds the container's env, not the systemd unit.
+EnvironmentFile=/etc/kheeper/llm-vllm-model.env
+EnvironmentFile=/etc/kheeper/llm-vllm.env
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=600s
+
+[Install]
+WantedBy=multi-user.target

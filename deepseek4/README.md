@@ -1,18 +1,18 @@
-# Gemma 4
+# DeepSeek 4 Flash
 
-[Homepage](https://ai.google.dev/gemma)
+[Homepage](https://www.deepseek.com/)
 
-[Model card](https://huggingface.co/google/gemma-4-31B-it)
+[Model card](https://huggingface.co/deepseek-ai/DeepSeek-V4-Flash)
 
-> Gemma 4 is Google's family of open-weight large language models. This image runs the 31B instruction-tuned variant on a single NVIDIA GPU as an OpenAI-compatible API.
+> DeepSeek V4 Flash is the latency-optimized variant of DeepSeek's V4 series of open-weight large language models. This image runs it on a single NVIDIA GPU as an OpenAI-compatible API.
 
 The model weights are baked into the image. vLLM serves the API on `127.0.0.1:8000`; [Caddy](https://caddyserver.com) terminates TLS on `:443` with automatic Let's Encrypt and reverse-proxies `/v1/*` to vLLM. A Grafana dashboard for token throughput, time-to-first-token, latency, and KV-cache utilization is available at `https://<domain>/grafana/`.
 
 ## Hardware requirements
 
-- **NVIDIA GPU with ≥ 80 GB VRAM** for the 31B model in bf16 (Hopper H100/H200, Blackwell B200/RTX PRO 6000, or comparable). The image will not boot a usable vLLM on smaller GPUs without quantization.
-- **≥ 96 GB system RAM.** vLLM memory-maps the 58 GB safetensors checkpoint during load; below ~80 GB RAM the page cache thrashes and first-inference latency explodes.
-- **≥ 500 GB boot disk.** The image is ~70 GB compressed (~190 GB unpacked), and bootc temporarily doubles disk usage during in-place upgrades.
+- **NVIDIA GPU with ≥ 48 GB VRAM** (L40S, A100 40/80 GB, H100, RTX PRO 6000, or comparable). The image will not boot a usable vLLM on smaller GPUs without quantization.
+- **≥ 180 GB system RAM.** vLLM memory-maps the safetensors checkpoint during load; below a comfortable margin the page cache thrashes and first-inference latency explodes.
+- **≥ 500 GB boot disk.** bootc temporarily doubles disk usage during in-place upgrades.
 - Linux/x86_64 host with NVIDIA GPU passthrough enabled (most cloud "GPU" instance types).
 
 ## Configuration
@@ -22,7 +22,7 @@ The model weights are baked into the image. vLLM serves the API on `127.0.0.1:80
 | `admin_authorized_keys` | SSH public key(s), one per line. Required so you can `ssh admin@<host>` to debug or check logs while the model loads. Inherited from [`base`](../base). |
 | `llm.domain` | Public domain resolving to this host. Used by Caddy for automatic TLS. After your host auto-registers it will have a DNS record at `<host>.<org>.kheeper.app` you can use. Inherited from [`llm-base`](../llm-base). |
 | `llm.api_key` | Bearer token clients send as `Authorization: Bearer <api_key>`. Minimum 24 characters; generate with `openssl rand -hex 24`. **Rotation** requires editing `config.json` and restarting `llm-vllm.service`. Inherited from [`llm-base`](../llm-base). |
-| `llm.max_model_len` | Optional, default 32768. vLLM context window in tokens. Gemma 4 31B-it caps at 131072 (128k). Inherited from [`llm-base`](../llm-base). |
+| `llm.max_model_len` | Optional, default 32768. vLLM context window in tokens. Inherited from [`llm-base`](../llm-base). |
 | `llm.gpu_memory_utilization` | Optional, default 0.95. Fraction of GPU VRAM vLLM uses (0.5..0.98). Inherited from [`llm-base`](../llm-base). |
 
 ## Launch on GCP
@@ -35,7 +35,7 @@ PROJECT_NUMBER=$(gcloud projects describe $(gcloud config get project) --format=
 kheeper clouds create my-gcp --org $ORG --project-number $PROJECT_NUMBER
 ```
 
-Open the firewall rules Gemma 4 needs. The image's host firewall opens `80/tcp` and `443/tcp` from anywhere; the cloud-side firewall must match:
+Open the firewall rules DeepSeek 4 needs. The image's host firewall opens `80/tcp` and `443/tcp` from anywhere; the cloud-side firewall must match:
 
 ```
 gcloud compute firewall-rules create allow-https \
@@ -48,7 +48,7 @@ GPU VMs need a non-zero **`GPUS_ALL_REGIONS`** quota for your project (separate 
 Create the VM (Blackwell example):
 
 ```
-HOST=my-gemma4
+HOST=my-deepseek4
 gcloud compute instances create $HOST \
     --image-family fedora-bootc --image-project kheeper \
     --zone us-central1-a \
@@ -59,7 +59,7 @@ gcloud compute instances create $HOST \
     --tags allow-https
 ```
 
-A few notes on the flags above. `g4-standard-48` gives the host 180 GB RAM, which comfortably fits the 58 GB safetensors checkpoint during load; smaller sizes in the g4 family work but trade away that headroom. `hyperdisk-balanced` is **required** by the g4 family — `pd-ssd` will be rejected. If you get `ZONE_RESOURCE_POOL_EXHAUSTED` (STOCKOUT), try another zone — `us-central1-f`, `us-west1-a/b/c`, `us-east1-d`, and `us-east4-b/c` all carry `nvidia-rtx-pro-6000`, but capacity rotates. Two warnings from `gcloud` you can ignore: "boot disk size larger than image size" (Fedora bootc auto-grows the partition on first boot) and "creating a global DNS VM" (the image registers and is reached via public IP through Cloudflare/kheeper DNS).
+A few notes on the flags above. `g4-standard-48` gives the host 180 GB RAM, which is the minimum for the checkpoint to memory-map cleanly during load — don't go smaller in the g4 family. `hyperdisk-balanced` is **required** by the g4 family — `pd-ssd` will be rejected. If you get `ZONE_RESOURCE_POOL_EXHAUSTED` (STOCKOUT), try another zone — `us-central1-f`, `us-west1-a/b/c`, `us-east1-d`, and `us-east4-b/c` all carry `nvidia-rtx-pro-6000`, but capacity rotates. Two warnings from `gcloud` you can ignore: "boot disk size larger than image size" (Fedora bootc auto-grows the partition on first boot) and "creating a global DNS VM" (the image registers and is reached via public IP through Cloudflare/kheeper DNS).
 
 The host auto-registers within a minute and gets a DNS A record at `$HOST.$ORG.kheeper.app` you can use for `domain`. Confirm:
 
@@ -70,7 +70,7 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image kheeper.com/public/gemma4:v0.1.0
+kheeper releases start config.json --image kheeper.com/public/deepseek4:v0.1.0
 ```
 
 That writes a default `./config.json`. Fill in the three required fields — your SSH public key, the host's DNS record, and a fresh API key — and save the key somewhere you'll remember (you'll need it for every API call):
@@ -92,14 +92,14 @@ Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image kheeper.com/public/gemma4:v0.1.0 \
+    --image kheeper.com/public/deepseek4:v0.1.0 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `kheeper.com/public/gemma4:v0.1.0` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `kheeper.com/public/deepseek4:v0.1.0` is the image it's built from.
 
-First boot takes roughly 40 minutes: ~25 min to pull the 70 GB image from the registry, ~10 min for bootc to deploy and soft-reboot, ~5 min for vLLM to load the model into VRAM. You can watch progress over SSH:
+First boot is dominated by the image pull and vLLM's first model load into VRAM. You can watch progress over SSH:
 
 ```
 ssh admin@$HOST.$ORG.kheeper.app sudo journalctl -fu kheeper-upgrade -u llm-vllm
@@ -123,7 +123,7 @@ curl -s https://<your-domain>/v1/chat/completions \
     -H "Authorization: Bearer <your-api-key>" \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "google/gemma-4-31B-it",
+        "model": "deepseek-ai/DeepSeek-V4-Flash",
         "messages": [{"role": "user", "content": "Say hello."}]
     }'
 ```
@@ -138,7 +138,7 @@ client = OpenAI(
     api_key="<your-api-key>",
 )
 print(client.chat.completions.create(
-    model="google/gemma-4-31B-it",
+    model="deepseek-ai/DeepSeek-V4-Flash",
     messages=[{"role": "user", "content": "Say hello."}],
 ).choices[0].message.content)
 ```
@@ -156,7 +156,7 @@ docker run -d -p 3000:8080 \
     ghcr.io/open-webui/open-webui:main
 ```
 
-Then open <http://localhost:3000>, create the local admin account (Open WebUI's own login — separate from the kheeper image), and `google/gemma-4-31B-it` shows up in the model picker.
+Then open <http://localhost:3000>, create the local admin account (Open WebUI's own login — separate from the kheeper image), and `deepseek-ai/DeepSeek-V4-Flash` shows up in the model picker.
 
 ## Metrics
 

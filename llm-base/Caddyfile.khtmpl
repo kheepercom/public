@@ -1,4 +1,4 @@
-{{ .gemma4.domain }} {
+{{ .llm.domain }} {
 	encode zstd gzip
 
 	handle /v1/* {
