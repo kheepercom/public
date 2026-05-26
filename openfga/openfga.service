@@ -1,7 +1,7 @@
 [Unit]
 Description=OpenFGA Authorization Service
-After=postgresql.service openfga-db-init.service
-Requires=postgresql.service openfga-db-init.service
+After=postgresql.service kheeper-db-init.service
+Requires=postgresql.service kheeper-db-init.service
 
 [Service]
 User=openfga

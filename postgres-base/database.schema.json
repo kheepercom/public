@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the application database to create at first boot."
+    },
+    "users": {
+      "type": "array",
+      "description": "Local (peer-auth) roles created with LOGIN and granted access to the database. The first user owns it; additional users get full DDL/DML.",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}

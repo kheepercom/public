@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.0
+
+### Changed
+
+- vLLM container is now a logically bound image (`docker.io/vllm/vllm-openai:v0.21.0`) pulled by bootc into `/usr/lib/bootc/storage`, replacing the build-time skopeo pre-pull and the baked `/usr/lib/containers/storage` additional store.
+- `llm-vllm.container` no longer mounts a model path; leaf images now supply `/model` via a drop-in. The vLLM quadlet scopes bootc's LBI store with a per-container `--storage-opt additionalimagestore=/usr/lib/bootc/storage` instead of a host-wide `containers-storage.conf`.
+
+### Breaking
+
+- Leaf images must build `FROM llm-base:v0.2.0` and supply both the model weights (as a bound `*-weights` image) and a `llm-vllm.container.d/10-model.conf` drop-in mounting it at `/model`. See [`gemma4`](../gemma4) for the reference layering.
+
 ## v0.1.0
 
 ### Features

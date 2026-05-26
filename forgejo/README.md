@@ -6,7 +6,7 @@
 
 > Forgejo is a self-hosted lightweight software forge — a Git host with code review, issue tracking, releases, and CI.
 
-Operate Forgejo on your server with persistence in a local Postgres and automatic TLS provided by [Caddy](https://caddyserver.com). Git-over-SSH is served by Forgejo's built-in SSH server on port `2222` (the host's port `22` is reserved for admin SSH).
+Operate Forgejo on your server with persistence in a local Postgres and automatic TLS provided by [Caddy](https://caddyserver.com). Git-over-SSH is served by Forgejo's built-in SSH server on the default port `22`; admin SSH to the host is moved to port `2222`.
 
 ## Configuration
 
@@ -27,7 +27,7 @@ PROJECT_NUMBER=$(gcloud projects describe $(gcloud config get project) --format=
 kheeper clouds create my-gcp --org $ORG --project-number $PROJECT_NUMBER
 ```
 
-Open the firewall rules Forgejo needs. The image's host firewall opens `80/tcp` and `443/tcp` from anywhere (Caddy/ACME + HTTPS) and `2222/tcp` from anywhere (git SSH); the cloud-side firewall must match:
+Open the firewall rules Forgejo needs. The image's host firewall opens `80/tcp` and `443/tcp` from anywhere (Caddy/ACME + HTTPS), `22/tcp` from anywhere (git SSH), and `2222/tcp` (admin SSH); the cloud-side firewall must match:
 
 ```
 # 80/443 for ACME and the Forgejo HTTPS UI
@@ -35,10 +35,16 @@ gcloud compute firewall-rules create allow-https \
     --allow tcp:80,tcp:443 \
     --target-tags allow-https
 
-# 2222 for git-over-SSH
+# 22 for git-over-SSH
 gcloud compute firewall-rules create allow-forgejo-ssh \
-    --allow tcp:2222 \
+    --allow tcp:22 \
     --target-tags allow-forgejo-ssh
+
+# 2222 for admin SSH to the host (scope to your admin IPs)
+gcloud compute firewall-rules create allow-admin-ssh \
+    --allow tcp:2222 \
+    --source-ranges <your-admin-CIDRs> \
+    --target-tags allow-admin-ssh
 ```
 
 Create the VM:
@@ -50,7 +56,7 @@ gcloud compute instances create $HOST \
     --zone us-central1-a \
     --machine-type c4-standard-2 \
     --boot-disk-size 40GB \
-    --tags=allow-https,allow-forgejo-ssh
+    --tags=allow-https,allow-forgejo-ssh,allow-admin-ssh
 ```
 
 The host auto-registers within a minute and gets a DNS A record at `$HOST.$ORG.kheeper.app` you can use for `domain`. Confirm:
@@ -62,40 +68,40 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image kheeper.com/public/forgejo:v0.1.0
+kheeper releases start config.json --image us.kheeper.com/public/forgejo:v0.2.0
 ```
 
 That writes a default `./config.json`. Edit it so `domain` matches your DNS record, set `admin_username`, `admin_password` (min 12 chars), and `admin_email`. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image kheeper.com/public/forgejo:v0.1.0 \
+    --image us.kheeper.com/public/forgejo:v0.2.0 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `kheeper.com/public/forgejo:v0.1.0` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/forgejo:v0.2.0` is the image it's built from.
 
 ## Alternative platforms
 
 - [Bare metal](https://kheeper.com/docs/getting-started/boot-bare-metal) — register a physical host via iPXE
 - [AWS](https://kheeper.com/docs/getting-started/boot-aws) — same flow as GCP using EC2 + a security group
 
-In both cases, replicate the firewall section above on your cloud / network: `80/443` from anywhere, `2222/tcp` from anywhere.
+In both cases, replicate the firewall section above on your cloud / network: `80/443` and `22/tcp` from anywhere, `2222/tcp` scoped to your admin IPs.
 
 ## Git over SSH
 
-Forgejo's built-in SSH server listens on `0.0.0.0:2222`. Clone URLs use the non-default port:
+Forgejo's built-in SSH server listens on `0.0.0.0:22`, so clone URLs use the default port:
 
 ```
-git clone ssh://git@<your-domain>:2222/<user>/<repo>.git
+git clone git@<your-domain>:<user>/<repo>.git
 ```
 
 Add your public key in **Settings → SSH / GPG Keys** in the web UI before pushing.
 
 ## Rotating the admin password
 
-The `admin_password` field is consumed only on first boot; editing `config.json` afterwards does not rotate the password. To change it, SSH to the host and run:
+The `admin_password` field is consumed only on first boot; editing `config.json` afterwards does not rotate the password. To change it, SSH to the host (on port `2222`: `ssh -p 2222 admin@<host>`) and run:
 
 ```
 sudo -u git /usr/local/bin/forgejo -c /etc/forgejo/app.ini \

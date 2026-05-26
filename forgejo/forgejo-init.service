@@ -1,7 +1,7 @@
 [Unit]
 Description=Bootstrap Forgejo (inject domain, migrate, admin user)
-After=forgejo-db-init.service
-Requires=forgejo-db-init.service
+After=kheeper-db-init.service
+Requires=kheeper-db-init.service
 Before=forgejo.service
 
 [Service]

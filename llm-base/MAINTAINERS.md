@@ -75,18 +75,21 @@ NVIDIA package in the image. To bump:
    package; the versionlock keeps later in-place dnf upgrades from drifting
    off the matched-set.
 
-## When vLLM bumps (`ARG VLLM_IMAGE`)
+## When vLLM bumps (`llm-vllm.image`)
 
-`ARG VLLM_IMAGE` and the `Image=` line in `llm-vllm.container` must be
-kept in sync. They are **not** the same variable:
+`llm-vllm.image` and the `Image=` line in `llm-vllm.container` must be
+kept in sync. They are **not** the same place:
 
-- The ARG controls which image `skopeo` pre-pulls into the additional image
-  store at build time.
-- The quadlet's literal `Image=` is what podman actually runs at boot.
+- `llm-vllm.image` is the logically bound image declaration; bootc pulls
+  that image into `/usr/lib/bootc/storage` alongside the OS image.
+- The quadlet's literal `Image=` is what podman actually runs at boot,
+  resolved from that store via the quadlet's
+  `GlobalArgs=--storage-opt additionalimagestore=/usr/lib/bootc/storage`.
 
-If you bump only one, builds succeed and the host boots, but vLLM runs the
-wrong version (and may pull the quadlet's image from docker.io at first
-boot if it's not in the additional store).
+If you bump only one, builds succeed and the host boots, but either bootc
+pulls a version podman never runs, or podman can't find the `Image=` in
+the bound-image store and falls back to pulling from docker.io at first
+boot.
 
 Also bump `TimeoutStartSec=` in the quadlet's `[Service]` section if the
 new vLLM is slower to load (current value 600s is comfortable for 60 GB
@@ -123,10 +126,16 @@ Non-obvious bits in `llm-vllm.container`:
   leaf image with `VLLM_SERVED_MODEL_NAME=...`) is deliberate: the model
   identity is part of the image, not configuration.
 
-- Model volume must be `Volume=/usr/share/llm/model:/model:ro` — **no
-  `:Z` flag**. `Z` triggers an SELinux relabel of the source dir, which
-  fails on bootc's read-only composefs `/usr` with `lsetxattr ... EROFS`
-  before the container even starts.
+- The model is **not** mounted by this base unit. Each leaf binds a
+  `FROM scratch` `<model>-weights` image (an LBI) and ships a
+  `llm-vllm.container.d/10-model.conf` drop-in mounting it with
+  `Mount=type=image,source=...,destination=/model,readwrite=false`. Use
+  `Mount=type=image` (read-only by default — **no `:Z`**), not
+  `Volume=...:/model:Z`: `Z` triggers an SELinux relabel of the source,
+  which fails on bootc's read-only composefs `/usr` with `lsetxattr ...
+  EROFS` before the container even starts. The weights tag is pinned in
+  two leaf files — `llm-model.image` and `10-model.conf` — bump both
+  together.
 
 - Adding a new env var to `llm-vllm.env.khtmpl`? Also add the
   corresponding `--<flag> ${VAR}` to `Exec=`, and (if it's a runtime

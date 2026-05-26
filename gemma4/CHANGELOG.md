@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.0
+
+### Changed
+
+- `google/gemma-4-31B-it` weights now ship as a logically bound image (`kheeper.com/public/gemma4-weights:v1.0.0`) instead of being baked into the OS image. bootc pulls it separately into `/usr/lib/bootc/storage`; OS rebuilds no longer re-pull the ~59 GB weight layer.
+- vLLM mounts the weights read-only at `/model` via a quadlet drop-in.
+- Builds on [`llm-base`](../llm-base) v0.2.0.
+
 ## v0.1.0
 
 ### Features

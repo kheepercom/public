@@ -1,6 +1,6 @@
 # base
 
-`kheeper.com/public/base` — the bootc base image that every other public kheeper image is built `FROM`. Built on `quay.io/fedora/fedora-bootc:latest` and adds the baseline that any internet-facing host should have: a refreshed package cache, a hardened SSH login for an unprivileged admin user, a locked-down firewall, and a persistent journal with sane retention.
+`us.kheeper.com/public/base` — the bootc base image that every other public kheeper image is built `FROM`. Built on `quay.io/fedora/fedora-bootc:latest` and adds the baseline that any internet-facing host should have: a refreshed package cache, a hardened SSH login for an unprivileged admin user, a locked-down firewall, and a persistent journal with sane retention.
 
 This image is meant to be layered, not booted directly. Image-specific software and configuration belong in the downstream image. Anything that should be true of *every* kheeper public host (firewall posture, ssh policy, log retention) belongs here.
 
@@ -17,7 +17,7 @@ The host firewall opens `22/tcp` for SSH. Downstream images add their own ports 
 ## Layering on this image
 
 ```Containerfile
-FROM kheeper.com/public/base:v0.1.0
+FROM us.kheeper.com/public/base:v0.1.1
 
 # install your app, add your firewall openings, drop in unit files, etc.
 ```

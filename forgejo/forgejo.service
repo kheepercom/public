@@ -35,8 +35,9 @@ MemoryDenyWriteExecute=yes
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
 SystemCallFilter=~@privileged
-CapabilityBoundingSet=
-AmbientCapabilities=
+# Forgejo's built-in SSH server binds the privileged port 22 as the non-root git user
+CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+AmbientCapabilities=CAP_NET_BIND_SERVICE
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 ReadWritePaths=/var/lib/forgejo /var/run/postgresql /etc/forgejo
 

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+### Changes
+
+- Build on `postgres-base` v0.2.0, picking up the latest `fedora-bootc:44` base digest
+
 ## v0.1.0
 
 ### Features

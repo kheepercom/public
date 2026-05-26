@@ -1,4 +1,4 @@
-FROM kheeper.com/public/postgres-base:v0.1.0
+FROM us.kheeper.com/public/postgres-base:v0.2.0
 
 ARG VERSION=15.0.2
 
@@ -9,9 +9,14 @@ RUN dnf install -y \
 	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/lib/caddy /var/log/* /tmp/* \
 	&& rm -rf /run/dnf /run/lock /run/log
 
+# 80/443 for Caddy/ACME, 22 for git-over-SSH (Forgejo), 2222 for admin sshd.
+# 22 is already opened by the base image.
 RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
 	&& firewall-offline-cmd --zone=public --add-port=443/tcp \
 	&& firewall-offline-cmd --zone=public --add-port=2222/tcp
+
+# Move admin sshd to 2222 so Forgejo's git SSH server can bind the default port 22
+COPY sshd-port.conf /etc/ssh/sshd_config.d/20-forgejo-sshd-port.conf
 
 RUN systemctl enable caddy
 COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
@@ -26,13 +31,16 @@ RUN install -d -o root -g git -m 0770 /etc/forgejo
 COPY --chown=root:git --chmod=0660 app.ini /etc/forgejo/app.ini
 
 COPY forgejo.service /usr/lib/systemd/system/forgejo.service
-COPY forgejo-db-init.service /usr/lib/systemd/system/forgejo-db-init.service
-COPY forgejo-db-init.sql /etc/kheeper/forgejo-db-init.sql
 COPY forgejo-init.service /usr/lib/systemd/system/forgejo-init.service
 COPY --chmod=0755 forgejo-init.sh /usr/local/sbin/forgejo-init
 COPY forgejo.env.khtmpl /etc/kheeper/forgejo.env.khtmpl
 COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-forgejo.conf
-RUN systemctl enable forgejo-db-init forgejo-init forgejo
+
+# Forgejo's postgres role + database are created by the shared kheeper-db-init
+# from postgres-base; this starter default points it at the forgejo db/user.
+COPY starter.d/database.json /etc/kheeper/starter.d/database.json
+
+RUN systemctl enable forgejo-init forgejo
 
 COPY forgejo-scrape.json /etc/victoria-metrics/scrape.d/forgejo.json
 COPY grafana-dashboards/forgejo.json /etc/grafana/dashboards/forgejo.json

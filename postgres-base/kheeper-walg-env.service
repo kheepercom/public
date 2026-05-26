@@ -2,7 +2,7 @@
 Description=Render /etc/kheeper/walg.env from this host's identity
 After=network-online.target
 Wants=network-online.target
-Before=postgresql.service walg-base-backup.service walg-retention.service
+Before=walg-base-backup.service walg-retention.service
 ConditionPathExists=/etc/kheeper/default/identity.json
 
 [Service]

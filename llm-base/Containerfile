@@ -1,4 +1,4 @@
-FROM kheeper.com/public/metrics-base:v0.1.0
+FROM us.kheeper.com/public/metrics-base:v0.1.1
 
 ARG KERNEL_VERSION=7.0.8-200.fc44.x86_64
 # Open kmod source in RPM Fusion lags the proprietary driver. Pin userspace
@@ -7,8 +7,6 @@ ARG KERNEL_VERSION=7.0.8-200.fc44.x86_64
 # Version only; dnf will resolve to whatever -release the repo has for each
 # package (akmod-nvidia* is -2.fc44 while xorg-x11-drv-nvidia* is -1.fc44).
 ARG NVIDIA_DRIVER_VERSION=595.58.03
-ARG VLLM_IMAGE=docker.io/vllm/vllm-openai:v0.21.0
-
 # 1. RPM Fusion + open NVIDIA kmod compiled at build time for KERNEL_VERSION.
 #    RPM Fusion stopped shipping precompiled kmod-nvidia-open-<driver>-<kernel>
 #    packages on Fedora 44; the kmod-nvidia-open metapackage now contains no
@@ -65,57 +63,44 @@ RUN ln -sf /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/pki/tls/certs/
 	&& dnf install -y nvidia-container-toolkit \
 	&& dnf clean all
 
-# 3. Register /usr/lib/containers/storage as an additional image store so the
-#    pre-pulled vLLM container is discoverable at runtime without using /var
-#    (which is machine state in bootc).
-RUN install -d -m 0755 /usr/lib/containers/storage /etc/containers/storage.conf.d
-COPY containers-storage.conf /etc/containers/storage.conf.d/10-llm.conf
+# 3. vLLM container as a logically bound image. bootc pulls it into
+#    /usr/lib/bootc/storage alongside the OS image — no build-time skopeo,
+#    no baked-in additional image store.
+COPY llm-vllm.image /usr/share/containers/systemd/llm-vllm.image
+RUN install -d -m 0755 /usr/lib/bootc/bound-images.d \
+	&& ln -s ../../../share/containers/systemd/llm-vllm.image \
+		/usr/lib/bootc/bound-images.d/llm-vllm.image
 
-# 4. Pre-pull vLLM container into the additional image store.
-#    Skopeo unpacks each layer in its own user namespace via c/storage; that
-#    namespace reads /etc/subuid + /etc/subgid from inside this build container.
-#    The base image ships them empty, so unpacking fails when a layer file is
-#    owned by a non-root group (e.g. /etc/gshadow root:shadow == 0:42). Seed
-#    the maps just for this step. The entries don't affect the runtime image:
-#    nothing in the booted host does rootless container nesting.
-RUN dnf install -y skopeo \
-	&& echo "root:100000:65536" >> /etc/subuid \
-	&& echo "root:100000:65536" >> /etc/subgid \
-	&& skopeo copy --quiet \
-		docker://${VLLM_IMAGE} \
-		"containers-storage:[overlay@/usr/lib/containers/storage+/tmp/skopeo-tmp]${VLLM_IMAGE}" \
-	&& dnf clean all \
-	&& rm -rf /tmp/skopeo-tmp
-
-# 5. Firewall: 80/443 only; vLLM stays on loopback
+# 4. Firewall: 80/443 only; vLLM stays on loopback
 RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
 	&& firewall-offline-cmd --zone=public --add-port=443/tcp
 
-# 6. Caddy
+# 5. Caddy
 RUN dnf install -y caddy && systemctl enable caddy && dnf clean all
 COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
 
-# 7. Grafana sub-path support
+# 6. Grafana sub-path support
 COPY grafana-subpath.env.khtmpl /etc/kheeper/grafana-subpath.env.khtmpl
 RUN install -d -m 0755 /usr/lib/systemd/system/grafana.service.d
 COPY grafana-subpath.conf /usr/lib/systemd/system/grafana.service.d/10-llm.conf
 
-# 8. vLLM quadlet + env template + CDI init.
-#    The leaf image is responsible for COPYing model weights to
-#    /usr/share/llm/model/ and a static env file with VLLM_SERVED_MODEL_NAME
-#    to /etc/kheeper/llm-vllm-model.env.
+# 7. vLLM quadlet + env template + CDI init.
+#    The leaf image binds the model weights as a logically bound image (a
+#    FROM-scratch *-weights image mounted at /model via an
+#    llm-vllm.container.d drop-in) and ships a static env file with
+#    VLLM_SERVED_MODEL_NAME to /etc/kheeper/llm-vllm-model.env.
 COPY llm-vllm.container /usr/share/containers/systemd/llm-vllm.container
 COPY llm-vllm.env.khtmpl /etc/kheeper/llm-vllm.env.khtmpl
 COPY llm-cdi-init.service /usr/lib/systemd/system/llm-cdi-init.service
 COPY --chmod=0755 llm-cdi-init.sh /usr/local/sbin/llm-cdi-init
 RUN systemctl enable llm-cdi-init
 
-# 9. tmpfiles.d
+# 8. tmpfiles.d
 COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-llm.conf
 
-# 10. Metrics + dashboard
+# 9. Metrics + dashboard
 COPY llm-scrape.json /etc/victoria-metrics/scrape.d/llm.json
 COPY grafana-dashboards/llm.json /etc/grafana/dashboards/llm.json
 
-# 11. Schema for the .llm config block (shared across all leaf LLM images)
+# 10. Schema for the .llm config block (shared across all leaf LLM images)
 COPY schema.json /etc/kheeper/schema.d/llm.json

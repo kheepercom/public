@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.0
+
+### Changes
+
+- Provision the `forgejo` role and database via the shared `kheeper-db-init` from `postgres-base` (with a `starter.d/database.json` default) instead of a forgejo-specific `forgejo-db-init.service`, removing a duplicate-database race that left `kheeper-db-init` failed
+- Forgejo's built-in SSH server now listens on the default port `22`; clone URLs no longer need an explicit port (`git@<domain>:<user>/<repo>.git`)
+- Admin sshd moved to `2222` (forgejo-only `sshd_config.d` drop-in) — administer the host with `ssh -p 2222 admin@<host>`
+- `forgejo.service` granted `CAP_NET_BIND_SERVICE` so the non-root `git` user can bind privileged port `22`
+
 ## v0.1.0
 
 ### Features

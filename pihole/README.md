@@ -65,19 +65,19 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image kheeper.com/public/pihole:v0.1.0
+kheeper releases start config.json --image us.kheeper.com/public/pihole:v0.1.1
 ```
 
 That writes a default `./config.json`. Edit it so `domain` matches your DNS record, set `admin_password`, and list at least one CIDR in `dns_allowed_cidrs`. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image kheeper.com/public/pihole:v0.1.0 \
+    --image us.kheeper.com/public/pihole:v0.1.1 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `kheeper.com/public/pihole:v0.1.0` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/pihole:v0.1.1` is the image it's built from.
 
 ## Alternative platforms
 

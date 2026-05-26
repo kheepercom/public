@@ -1,4 +1,4 @@
-FROM kheeper.com/public/postgres-base:v0.1.0
+FROM us.kheeper.com/public/postgres-base:v0.2.0
 
 ARG VERSION=1.14.1
 
@@ -21,15 +21,14 @@ RUN curl -fLO https://github.com/openfga/openfga/releases/download/v${VERSION}/o
 RUN useradd --system --no-create-home --shell /sbin/nologin --user-group --groups postgres openfga
 
 COPY openfga.service /usr/lib/systemd/system/openfga.service
-COPY openfga-db-init.service /usr/lib/systemd/system/openfga-db-init.service
-COPY openfga-db-init.sql /etc/kheeper/openfga-db-init.sql
 COPY openfga.env.khtmpl /etc/kheeper/openfga.env.khtmpl
 COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-openfga.conf
-RUN systemctl enable openfga-db-init openfga
+RUN systemctl enable openfga
 
 COPY openfga-scrape.json /etc/victoria-metrics/scrape.d/openfga.json
 COPY grafana-dashboards/openfga.json /etc/grafana/dashboards/openfga.json
 
 COPY schema.json /etc/kheeper/schema.d/openfga.json
+COPY starter.d/database.json /etc/kheeper/starter.d/database.json
 
 RUN bootc container lint

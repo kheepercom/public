@@ -1,4 +1,4 @@
-FROM kheeper.com/public/base:v0.1.0
+FROM us.kheeper.com/public/base:v0.1.1
 
 ARG PIHOLE_VERSION=2025.07.0
 

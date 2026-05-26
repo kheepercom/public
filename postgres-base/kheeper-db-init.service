@@ -1,0 +1,14 @@
+[Unit]
+Description=Create the configured application database and local users
+After=postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+ExecStart=/usr/bin/psql -v ON_ERROR_STOP=1 -d postgres -f /etc/kheeper/kheeper-db-init.sql
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.0
+
+### Features
+
+- `kheeper-db-init.service` creates a configured application database and its local peer-auth users (`database.name` / `database.users`), so layered images don't ship their own db-init service and SQL
+- `postgresql-contrib` extensions and the `en_US.utf8` locale (via `glibc-langpack-en`) available in the image
+
+### Fixes
+
+- `kheeper-walg-env.service` no longer blocks `postgresql.service` start; WAL archiving sources `walg.env` per `wal-g` call so postgres boots immediately and backups catch up once the env is rendered
+
 ## v0.1.0
 
 ### Features

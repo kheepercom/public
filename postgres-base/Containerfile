@@ -1,9 +1,11 @@
-FROM kheeper.com/public/metrics-base:v0.1.0
+FROM us.kheeper.com/public/metrics-base:v0.1.1
 
 ARG WALG_VERSION=v3.0.8
 
 RUN dnf install -y \
 	postgresql-server \
+	postgresql-contrib \
+	glibc-langpack-en \
 	&& dnf clean all \
 	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/log/* /tmp/* \
 	&& rm -rf /run/dnf /run/lock /run/log
@@ -33,6 +35,9 @@ COPY postgresql-init.service /usr/lib/systemd/system/postgresql-init.service
 COPY --chmod=0755 postgresql-conf-init.sh /usr/local/sbin/postgresql-conf-init
 COPY 10-listen.conf /etc/kheeper/postgresql-conf.d/10-listen.conf
 COPY 20-walg.conf /etc/kheeper/postgresql-conf.d/20-walg.conf
+COPY database.schema.json /etc/kheeper/schema.d/database.json
+COPY kheeper-db-init.sql.khtmpl /etc/kheeper/kheeper-db-init.sql.khtmpl
+COPY kheeper-db-init.service /usr/lib/systemd/system/kheeper-db-init.service
 
 # wal-g via the localhost object-proxy: the proxy adapts wal-g to Kheeper's
 # object store, authenticating to objects.kheeper.com with the host JWT.
@@ -48,7 +53,7 @@ COPY postgresql.service.d-walg.conf /usr/lib/systemd/system/postgresql.service.d
 COPY postgresql.service.d-exporter.conf /usr/lib/systemd/system/postgresql.service.d/exporter.conf
 
 RUN systemctl enable postgresql-init postgresql postgres-exporter \
-	kheeper-object-proxy.service kheeper-walg-env.service \
+	kheeper-object-proxy.service kheeper-walg-env.service kheeper-db-init.service \
 	walg-base-backup.timer walg-retention.timer
 
 RUN bootc container lint

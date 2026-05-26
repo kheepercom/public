@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1
+
+### Changes
+
+- Database and `openfga` role are now provisioned by the shared `kheeper-db-init` service from `postgres-base` instead of a bespoke `openfga-db-init.service`; db identity supplied via `starter.d/database.json`
+
 ## v0.1.0
 
 ### Features

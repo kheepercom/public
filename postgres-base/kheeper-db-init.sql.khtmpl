@@ -1,0 +1,26 @@
+-- Rendered from the `database` config namespace. Idempotent.
+{{ with .database }}{{ if and .name .users }}
+{{ $db := .name }}{{ $owner := index .users 0 }}
+-- Local peer-auth roles (LOGIN, no password).
+{{ range .users }}
+SELECT format('CREATE ROLE %I LOGIN', '{{ . }}')
+WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{{ . }}')\gexec
+{{ end }}
+-- Database owned by the first user.
+SELECT format('CREATE DATABASE %I OWNER %I', '{{ $db }}', '{{ $owner }}')
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ $db }}')\gexec
+{{ range (slice .users 1) }}
+-- Additional user: full access to the database.
+SELECT format('GRANT ALL PRIVILEGES ON DATABASE %I TO %I', '{{ $db }}', '{{ . }}')\gexec
+{{ end }}
+{{ if gt (len .users) 1 }}
+\connect "{{ $db }}"
+{{ range (slice .users 1) }}
+SELECT format('GRANT ALL ON SCHEMA public TO %I', '{{ . }}')\gexec
+SELECT format('GRANT ALL ON ALL TABLES IN SCHEMA public TO %I', '{{ . }}')\gexec
+SELECT format('GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO %I', '{{ . }}')\gexec
+SELECT format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT ALL ON TABLES TO %I', '{{ $owner }}', '{{ . }}')\gexec
+SELECT format('ALTER DEFAULT PRIVILEGES FOR ROLE %I IN SCHEMA public GRANT ALL ON SEQUENCES TO %I', '{{ $owner }}', '{{ . }}')\gexec
+{{ end }}
+{{ end }}
+{{ end }}{{ end }}

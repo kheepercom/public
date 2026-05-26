@@ -6,20 +6,20 @@
 
 > Gemma 4 is Google's family of open-weight large language models. This image runs the 31B instruction-tuned variant on a single NVIDIA GPU as an OpenAI-compatible API.
 
-The model weights are baked into the image. vLLM serves the API on `127.0.0.1:8000`; [Caddy](https://caddyserver.com) terminates TLS on `:443` with automatic Let's Encrypt and reverse-proxies `/v1/*` to vLLM. A Grafana dashboard for token throughput, time-to-first-token, latency, and KV-cache utilization is available at `https://<domain>/grafana/`.
+The model weights ship as a separate logically bound image (`us.kheeper.com/public/gemma4-weights:v1.0.0`); bootc pulls it alongside the OS image but as independently-cached storage, and vLLM mounts it read-only at `/model`. vLLM serves the API on `127.0.0.1:8000`; [Caddy](https://caddyserver.com) terminates TLS on `:443` with automatic Let's Encrypt and reverse-proxies `/v1/*` to vLLM. A Grafana dashboard for token throughput, time-to-first-token, latency, and KV-cache utilization is available at `https://<domain>/grafana/`.
 
 ## Hardware requirements
 
 - **NVIDIA GPU with ≥ 80 GB VRAM** for the 31B model in bf16 (Hopper H100/H200, Blackwell B200/RTX PRO 6000, or comparable). The image will not boot a usable vLLM on smaller GPUs without quantization.
 - **≥ 96 GB system RAM.** vLLM memory-maps the 58 GB safetensors checkpoint during load; below ~80 GB RAM the page cache thrashes and first-inference latency explodes.
-- **≥ 500 GB boot disk.** The image is ~70 GB compressed (~190 GB unpacked), and bootc temporarily doubles disk usage during in-place upgrades.
+- **≥ 800 GB boot disk.** The bootc OS image itself is small now; the ~59 GB weights image is pulled separately into bootc storage (`/usr/lib/bootc/storage`). Size the disk for OS + weights plus bootc's headroom for in-place upgrades, which temporarily doubles on-disk usage.
 - Linux/x86_64 host with NVIDIA GPU passthrough enabled (most cloud "GPU" instance types).
 
 ## Configuration
 
 | Field | Description |
 | ----- | ----------- |
-| `admin_authorized_keys` | SSH public key(s), one per line. Required so you can `ssh admin@<host>` to debug or check logs while the model loads. Inherited from [`base`](../base). |
+| `base.admin_authorized_keys` | SSH public key(s), one per line. Required so you can `ssh admin@<host>` to debug or check logs while the model loads. Inherited from [`base`](../base). |
 | `llm.domain` | Public domain resolving to this host. Used by Caddy for automatic TLS. After your host auto-registers it will have a DNS record at `<host>.<org>.kheeper.app` you can use. Inherited from [`llm-base`](../llm-base). |
 | `llm.api_key` | Bearer token clients send as `Authorization: Bearer <api_key>`. Minimum 24 characters; generate with `openssl rand -hex 24`. **Rotation** requires editing `config.json` and restarting `llm-vllm.service`. Inherited from [`llm-base`](../llm-base). |
 | `llm.max_model_len` | Optional, default 32768. vLLM context window in tokens. Gemma 4 31B-it caps at 131072 (128k). Inherited from [`llm-base`](../llm-base). |
@@ -55,7 +55,7 @@ gcloud compute instances create $HOST \
     --machine-type g4-standard-48 \
     --accelerator count=1,type=nvidia-rtx-pro-6000 \
     --maintenance-policy TERMINATE --restart-on-failure \
-    --boot-disk-size 500GB --boot-disk-type hyperdisk-balanced \
+    --boot-disk-size 800GB --boot-disk-type hyperdisk-balanced \
     --tags allow-https
 ```
 
@@ -70,7 +70,7 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image kheeper.com/public/gemma4:v0.1.0
+kheeper releases start config.json --image us.kheeper.com/public/gemma4:v0.2.0
 ```
 
 That writes a default `./config.json`. Fill in the three required fields — your SSH public key, the host's DNS record, and a fresh API key — and save the key somewhere you'll remember (you'll need it for every API call):
@@ -92,20 +92,20 @@ Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image kheeper.com/public/gemma4:v0.1.0 \
+    --image us.kheeper.com/public/gemma4:v0.2.0 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `kheeper.com/public/gemma4:v0.1.0` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/gemma4:v0.2.0` is the image it's built from.
 
-First boot takes roughly 40 minutes: ~25 min to pull the 70 GB image from the registry, ~10 min for bootc to deploy and soft-reboot, ~5 min for vLLM to load the model into VRAM. You can watch progress over SSH:
+First boot takes roughly 40 minutes: ~25 min for bootc to pull the OS image plus the ~59 GB `gemma4-weights` image into its storage, ~10 min to deploy and soft-reboot, ~5 min for vLLM to load the model into VRAM. You can watch progress over SSH:
 
 ```
 ssh admin@$HOST.$ORG.kheeper.app sudo journalctl -fu kheeper-upgrade -u llm-vllm
 ```
 
-When `curl -sI https://$HOST.$ORG.kheeper.app/v1/models -H "Authorization: Bearer $API_KEY"` returns `HTTP/2 200`, the API is serving. Subsequent reboots are fast (the model layer is cached locally).
+When `curl -sI https://$HOST.$ORG.kheeper.app/v1/models -H "Authorization: Bearer $API_KEY"` returns `HTTP/2 200`, the API is serving. Subsequent reboots are fast (the OS image and weights image are already in local bootc storage).
 
 ## Alternative platforms
 

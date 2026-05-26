@@ -1,6 +1,6 @@
 # metrics-base
 
-`kheeper.com/public/metrics-base` — [`base`](../base) plus a self-contained single-node observability stack. Build `FROM` this instead of `base` when you want every host to be self-monitoring on first boot.
+`us.kheeper.com/public/metrics-base` — [`base`](../base) plus a self-contained single-node observability stack. Build `FROM` this instead of `base` when you want every host to be self-monitoring on first boot.
 
 This image is meant to be layered, not booted directly.
 
@@ -15,7 +15,7 @@ Inherits `22/tcp` from [`base`](../base). No additional ports are opened: vmsing
 ## Layering on this image
 
 ```Containerfile
-FROM kheeper.com/public/metrics-base:v0.1.0
+FROM us.kheeper.com/public/metrics-base:v0.1.1
 
 # drop a scrape config in /etc/victoria-metrics/scrape.d/<service>.json
 # and a dashboard JSON in /var/lib/grafana/dashboards/ to extend the stack
