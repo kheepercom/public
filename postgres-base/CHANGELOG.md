@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.1
+
+### Fixes
+
+- kheeper version bumped to v0.11.1 fixes kheeper-walg-env service
+- pin `POSTGRES_EXPORTER_VERSION` (0.19.1); the undeclared ARG broke the postgres_exporter download
+
 ## v0.2.0
 
 ### Features

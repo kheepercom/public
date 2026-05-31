@@ -20,7 +20,7 @@ RUN curl -LO https://github.com/prometheus-community/postgres_exporter/releases/
 	&& tar xzf postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz -C /usr/local/bin --strip-components=1 postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64/postgres_exporter \
 	&& rm postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz
 
-ARG KHEEPER_VERSION=v0.5.0
+ARG KHEEPER_VERSION=v0.11.1
 
 RUN curl -LO https://github.com/kheepercom/homebrew-tap/releases/download/${KHEEPER_VERSION}/kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz \
 	&& tar xzf kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz -C /usr/local/bin kheeper docker-credential-kheeper \
