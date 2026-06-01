@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2
+
+### Changes
+
+- Bump `postgres-base` to v0.2.3 (kheeper v0.11.2 fixes wal-g object store origin)
+
 ## v0.2.1
 
 - postgres-base bumped to v0.2.2 (peer auth). DB role renamed from `forgejo` to `git` so the OS user (`git`) matches the DB role under peer auth.

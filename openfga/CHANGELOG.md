@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.3
+
+### Changes
+
+- Bump `postgres-base` to v0.2.3 (kheeper v0.11.2 fixes wal-g object store origin)
+
 ## v0.1.2
 
 ### Changes

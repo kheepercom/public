@@ -1,6 +1,8 @@
 FROM us.kheeper.com/public/metrics-base:v0.1.1
 
 ARG WALG_VERSION=v3.0.8
+ARG KHEEPER_VERSION=v0.11.2
+ARG POSTGRES_EXPORTER_VERSION=0.19.1
 
 RUN dnf install -y \
 	postgresql-server \
@@ -14,13 +16,11 @@ RUN curl -LO https://github.com/wal-g/wal-g/releases/download/${WALG_VERSION}/wa
 	&& tar xzf wal-g-pg-24.04-amd64.tar.gz -C /usr/local/bin --transform 's/wal-g-pg-24.04-amd64/wal-g/' \
 	&& rm wal-g-pg-24.04-amd64.tar.gz
 
-ARG POSTGRES_EXPORTER_VERSION=0.19.1
 
 RUN curl -LO https://github.com/prometheus-community/postgres_exporter/releases/download/v${POSTGRES_EXPORTER_VERSION}/postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz \
 	&& tar xzf postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz -C /usr/local/bin --strip-components=1 postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64/postgres_exporter \
 	&& rm postgres_exporter-${POSTGRES_EXPORTER_VERSION}.linux-amd64.tar.gz
 
-ARG KHEEPER_VERSION=v0.11.1
 
 RUN curl -LO https://github.com/kheepercom/homebrew-tap/releases/download/${KHEEPER_VERSION}/kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz \
 	&& tar xzf kheeper_${KHEEPER_VERSION}_linux_amd64.tar.gz -C /usr/local/bin kheeper docker-credential-kheeper \

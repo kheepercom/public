@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.3
+
+### Fixes
+
+- kheeper version bumped to v0.11.2 fixes wal-g object store origin
+
 ## v0.2.2
 
 ### Security
