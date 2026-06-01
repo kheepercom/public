@@ -10,7 +10,7 @@ User=postgres
 Group=postgres
 # initdb if PG_VERSION is missing (first boot); skip otherwise so subsequent
 # boots only run the conf snippet append step.
-ExecStart=/bin/sh -c '[ -f /var/lib/pgsql/data/PG_VERSION ] || /usr/bin/initdb -D /var/lib/pgsql/data'
+ExecStart=/bin/sh -c '[ -f /var/lib/pgsql/data/PG_VERSION ] || /usr/bin/initdb -D /var/lib/pgsql/data --auth-local=peer --auth-host=scram-sha-256'
 ExecStartPost=/usr/local/sbin/postgresql-conf-init
 RemainAfterExit=yes
 

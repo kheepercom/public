@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.2
+
+### Security
+
+- `initdb` now runs with `--auth-local=peer --auth-host=scram-sha-256`: local socket connections use peer auth (OS user must match the DB role), loopback TCP requires `scram-sha-256`. Removes the previous `trust` default. Applies to freshly initialized clusters only.
+- `listen_addresses` now defaults to `''` (socket-only, no TCP listener). Images that need TCP override it (standalone postgres → `'*'`).
+
 ## v0.2.1
 
 ### Fixes

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2
+
+### Changes
+
+- Bump `postgres-base` to v0.2.2 (peer auth hardened). No config change: `openfga` already connects as OS user `openfga` == DB role `openfga` over the socket.
+
 ## v0.1.1
 
 ### Changes

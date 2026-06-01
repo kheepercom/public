@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1
+
+- postgres-base bumped to v0.2.2 (peer auth). DB role renamed from `forgejo` to `git` so the OS user (`git`) matches the DB role under peer auth.
+
 ## v0.2.0
 
 ### Changes

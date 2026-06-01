@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2
+
+### Changes
+
+- Bump `postgres-base` to v0.2.2 (peer auth + socket-only listen default hardening); no functional change — `30-listen.conf`'s `listen_addresses = '*'` still overrides the new base default, and external TLS clients continue to use the appended `hostssl all postgres … scram-sha-256` rule with the superuser password as before
+
 ## v0.1.1
 
 ### Changes
