@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.2
+
+### Changes
+
+- Rebuild on `base` v0.1.2 (latest `fedora-bootc:44` digest)
+- Bump Pi-hole to 2026.05.0
+
 ## v0.1.1
 
 ### Changes

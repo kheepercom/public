@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.4
+
+### Changes
+
+- Bump `postgres-base` to v0.2.4 (latest `fedora-bootc:44` digest, kheeper v0.12.2)
+
 ## v0.1.3
 
 ### Changes

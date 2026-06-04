@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.4
+
+### Changes
+
+- Rebuild on `metrics-base` v0.1.2 (latest `fedora-bootc:44` digest)
+- Bump bundled kheeper CLI to v0.12.2
+
 ## v0.2.3
 
 ### Fixes

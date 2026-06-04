@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.1
+
+### Changes
+
+- Rebuild on `metrics-base` v0.1.2 (latest `fedora-bootc:44` digest)
+- Bump pinned kernel to `7.0.10-201.fc44.x86_64` to match the new base digest
+- Bump vLLM bound image to `docker.io/vllm/vllm-openai:v0.22.0`
+- NVIDIA open driver held at `595.58.03` — newest RPM Fusion F44 build with a matching `akmod-nvidia-open`
+
 ## v0.2.0
 
 ### Changed

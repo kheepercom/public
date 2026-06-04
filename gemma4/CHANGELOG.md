@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.1
+
+### Changes
+
+- Rebuild on `llm-base` v0.2.1 (latest base digest, kernel `7.0.10-201`, vLLM v0.22.0)
+
 ## v0.2.0
 
 ### Changed

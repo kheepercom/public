@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.1.2
+
+### Changes
+
+- Rebuild on `base` v0.1.2 (latest `fedora-bootc:44` digest)
+- Bump VictoriaMetrics to v1.144.0
+- Bump Grafana to 11.6.15 (latest 11.x; held off the 12.x major to avoid dashboard breakage)
+
 ## v0.1.1
 
 ### Changes

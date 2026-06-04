@@ -1,2 +1,2 @@
 [Image]
-Image=docker.io/vllm/vllm-openai:v0.21.0
+Image=docker.io/vllm/vllm-openai:v0.22.0
