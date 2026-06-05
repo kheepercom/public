@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2
+
+### Bug Fixes
+
+- Fixed tag of the weight image
+
 ## v0.2.1
 
 ### Changes
