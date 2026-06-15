@@ -36,7 +36,8 @@ COPY --chmod=0755 postgresql-conf-init.sh /usr/local/sbin/postgresql-conf-init
 COPY 10-listen.conf /etc/kheeper/postgresql-conf.d/10-listen.conf
 COPY 20-walg.conf /etc/kheeper/postgresql-conf.d/20-walg.conf
 COPY database.schema.json /etc/kheeper/schema.d/database.json
-COPY kheeper-db-init.sql.khtmpl /etc/kheeper/kheeper-db-init.sql.khtmpl
+COPY kheeper-db-init.sql.khtmpl /usr/share/factory/etc/kheeper/kheeper-db-init.sql.khtmpl
+COPY kheeper-db.conf /usr/lib/tmpfiles.d/kheeper-db.conf
 COPY kheeper-db-init.service /usr/lib/systemd/system/kheeper-db-init.service
 
 # wal-g via the localhost object-proxy: the proxy adapts wal-g to Kheeper's

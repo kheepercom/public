@@ -9,7 +9,7 @@ ConditionPathExists=/etc/kheeper/default/identity.json
 Type=oneshot
 RemainAfterExit=yes
 Environment=KHEEPER_CONFIG=/etc/kheeper
-ExecStart=/bin/sh -c '/usr/local/bin/kheeper hosts me --env > /etc/kheeper/walg.env.tmp && install -m 0644 /etc/kheeper/walg.env.tmp /etc/kheeper/walg.env && rm /etc/kheeper/walg.env.tmp'
+ExecStart=/bin/sh -c 'for i in $(seq 1 30); do /usr/local/bin/kheeper hosts me --env > /etc/kheeper/walg.env.tmp && install -m 0644 /etc/kheeper/walg.env.tmp /etc/kheeper/walg.env && rm -f /etc/kheeper/walg.env.tmp && exit 0; echo "kheeper-walg-env: attempt $i failed, retrying in 5s" >&2; sleep 5; done; echo "kheeper-walg-env: giving up after 30 attempts" >&2; exit 1'
 
 [Install]
 WantedBy=multi-user.target

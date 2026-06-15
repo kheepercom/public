@@ -68,9 +68,11 @@ systemctl start walg-base-backup.service
 at first boot, driven by the `database` config namespace:
 
 - `database.name` — the database to create.
-- `database.users` — local roles created `LOGIN` **without a password**
-  (peer auth over the unix socket). The first user owns the database; any
-  additional users get full DDL/DML on it.
+- `database.users` — roles created `LOGIN`, each `{name, password?}`. The
+  first user owns the database; any additional users get full DDL/DML on it.
+  A user with a `password` can authenticate over TCP (`scram-sha-256`,
+  including `127.0.0.1` — and remotely in the standalone [`postgres`](../postgres)
+  image); a user without one is local peer-auth only.
 
 Peer auth requires a matching OS user in the `postgres` group; create it in your
 layer (`useradd --system --no-create-home --shell /sbin/nologin --user-group
@@ -80,3 +82,6 @@ on this one — add `After=kheeper-db-init.service` and
 app starts. Leaving `database` unset is fine — the service then does nothing.
 `name` and `users` must be set together; omitting either causes the service to
 skip init silently.
+
+The rendered `kheeper-db-init.sql` carries any configured passwords, so it is
+secured at `0640 root:postgres` via the factory + tmpfiles pattern.

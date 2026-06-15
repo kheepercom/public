@@ -1,0 +1,15 @@
+[Unit]
+Description=Open pg_hba rules for remote app users
+After=postgresql.service kheeper-db-init.service
+Requires=postgresql.service
+
+[Service]
+Type=oneshot
+User=postgres
+Group=postgres
+EnvironmentFile=/etc/kheeper/postgres-remote-users.env
+ExecStart=/usr/local/sbin/postgres-hba-apply
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

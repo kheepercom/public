@@ -70,7 +70,7 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/gemma4:v0.2.2
+kheeper releases start config.json --image us.kheeper.com/public/gemma4:v0.2.3
 ```
 
 That writes a default `./config.json`. Fill in the three required fields — your SSH public key, the host's DNS record, and a fresh API key — and save the key somewhere you'll remember (you'll need it for every API call):
@@ -92,12 +92,12 @@ Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/gemma4:v0.2.2 \
+    --image us.kheeper.com/public/gemma4:v0.2.3 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/gemma4:v0.2.2` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/gemma4:v0.2.3` is the image it's built from.
 
 First boot takes roughly 40 minutes: ~25 min for bootc to pull the OS image plus the ~59 GB `gemma4-weights` image into its storage, ~10 min to deploy and soft-reboot, ~5 min for vLLM to load the model into VRAM. You can watch progress over SSH:
 

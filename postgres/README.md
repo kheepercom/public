@@ -13,7 +13,15 @@ Operate Postgres on your server with persistence on the host filesystem, schedul
 | Field | Description |
 | ----- | ----------- |
 | `domain_name` | Optional. Public domain resolving to this host. If unset, the public IPv4 is auto-detected via `ifconfig.co` and a short-lived IP certificate is issued instead. After your host autoregisters it will have a DNS record at `<host>.<org>.kheeper.app` that you can use. |
-| `password` | Password for the `postgres` superuser. External clients connect over TLS as `postgres` with this password. Minimum 16 characters. |
+
+Remote clients connect as application accounts, not the `postgres` superuser.
+Configure them via `database.users` (inherited from
+[`postgres-base`](../postgres-base)): each entry is `{name, password}` — a
+user with a `password` gets a `hostssl ... scram-sha-256` rule and can
+authenticate over TLS from anywhere. The first user owns `database.name`'s
+database; additional users get full DDL/DML on it. The `postgres` superuser
+has no password and is reachable only locally (see
+[Connecting](#connecting-with-certificate-verification)).
 
 ## Launch on GCP
 
@@ -63,7 +71,7 @@ While the host is starting, configure your first release:
 kheeper releases start config.json --image us.kheeper.com/public/postgres:v0.1.4
 ```
 
-That writes a default `./config.json`. Set `password` and, if you have a domain, set `domain_name`; otherwise leave it empty and the image issues an IP certificate. Then create and activate the release:
+That writes a default `./config.json`. Set `database.name` and `database.users` (each with a `name` and `password`) for the app accounts that should be able to connect, and if you have a domain, set `domain_name`; otherwise leave it empty and the image issues an IP certificate. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
@@ -88,13 +96,19 @@ Always connect with `sslmode=verify-full` so libpq verifies the cert chain *and*
 The certificate is issued by Let's Encrypt, so any client trust store that includes ISRG roots will validate it. With libpq 16+ you can point `sslrootcert` at the OS trust store:
 
 ```
-psql "host=db.example.com user=postgres sslmode=verify-full sslrootcert=system"
+psql "host=db.example.com user=kheeper dbname=kheeper sslmode=verify-full sslrootcert=system"
 ```
 
 For a host booted without a `domain_name` (IP certificate), pass the public IP as `host` — libpq compares it against the cert's IP SAN:
 
 ```
-psql "host=1.2.3.4 user=postgres sslmode=verify-full sslrootcert=system"
+psql "host=1.2.3.4 user=kheeper dbname=kheeper sslmode=verify-full sslrootcert=system"
 ```
 
 If your client is on a system without a CA bundle, point `sslrootcert` at a copy of the [ISRG Root X1](https://letsencrypt.org/certs/isrgrootx1.pem) certificate instead of `system`.
+
+## Superuser access
+
+The `postgres` superuser has no password and is not reachable over `5432`.
+Administer the database by SSHing to the host and using the local peer-auth
+socket: `sudo -u postgres psql`.

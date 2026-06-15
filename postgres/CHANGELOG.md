@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.0
+- Remote clients now connect as their configured app users (`database.users`), each with its own password, over TLS.
+- Removed the superuser `password` config field; `postgres` is now peer/local-only (admin via SSH).
+- Built on postgres-base v0.3.0.
+
 ## v0.1.4
 
 ### Changes

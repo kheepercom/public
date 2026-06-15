@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.3
+
+### Bug Fixes
+
+- Fixed weight-image registry in the vLLM mount drop-in (`kheeper.com` → `us.kheeper.com`); v0.2.2 only corrected the bound-image pull, so the mount still failed and vLLM never started
+
 ## v0.2.2
 
 ### Bug Fixes

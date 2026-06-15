@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0
+- `database.users` items are now objects `{name, password?}`; a user with a password can authenticate over TCP (scram), including localhost.
+- `kheeper-db-init.sql` is rendered via the factory + tmpfiles pattern at `0640 root:postgres` (it now carries passwords).
+- `kheeper-walg-env` retries on transient boot-time DNS failure instead of staying failed.
+
 ## v0.2.4
 
 ### Changes

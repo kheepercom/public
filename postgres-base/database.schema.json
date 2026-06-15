@@ -8,8 +8,20 @@
     },
     "users": {
       "type": "array",
-      "description": "Local (peer-auth) roles created with LOGIN and granted access to the database. The first user owns it; additional users get full DDL/DML.",
-      "items": { "type": "string" }
+      "description": "Roles created with LOGIN and granted access to the database. The first user owns it; the rest get full DDL/DML. A user with a password can authenticate over TCP (scram, incl. remote in the standalone postgres image); a user without one is local peer-auth only.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "description": "Role name." },
+          "password": {
+            "type": "string",
+            "description": "Optional password. When set, the role can authenticate over TCP via scram-sha-256.",
+            "minLength": 16
+          }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false

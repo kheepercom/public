@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/postgres-base:v0.2.4
+FROM us.kheeper.com/public/postgres-base:v0.3.0
 
 ARG LEGO_VERSION=v4.35.2
 
@@ -18,13 +18,13 @@ COPY postgres-cert-renew.timer /usr/lib/systemd/system/postgres-cert-renew.timer
 COPY postgres-cert.env.khtmpl /usr/share/factory/etc/kheeper/postgres-cert.env.khtmpl
 COPY schema.json /etc/kheeper/schema.d/postgres.json
 
-COPY --chmod=0755 postgres-password-apply.sh /usr/local/sbin/postgres-password-apply
-COPY postgres-password.service /usr/lib/systemd/system/postgres-password.service
-COPY postgres-password.env.khtmpl /usr/share/factory/etc/kheeper/postgres-password.env.khtmpl
+COPY --chmod=0755 postgres-hba-apply.sh /usr/local/sbin/postgres-hba-apply
+COPY postgres-hba.service /usr/lib/systemd/system/postgres-hba.service
+COPY postgres-remote-users.env.khtmpl /etc/kheeper/postgres-remote-users.env.khtmpl
 COPY kheeper-postgres.conf /usr/lib/tmpfiles.d/kheeper-postgres.conf
 
 COPY 30-listen.conf /etc/kheeper/postgresql-conf.d/30-listen.conf
 
-RUN systemctl enable postgres-cert postgres-password postgres-cert-renew.timer
+RUN systemctl enable postgres-cert postgres-hba postgres-cert-renew.timer
 
 RUN bootc container lint
