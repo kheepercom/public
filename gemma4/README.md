@@ -6,7 +6,7 @@
 
 > Gemma 4 is Google's family of open-weight large language models. This image runs the 31B instruction-tuned variant on a single NVIDIA GPU as an OpenAI-compatible API.
 
-The model weights ship as a separate logically bound image (`us.kheeper.com/public/gemma4-weights:v1.0.0`); bootc pulls it alongside the OS image but as independently-cached storage, and vLLM mounts it read-only at `/model`. vLLM serves the API on `127.0.0.1:8000`; [Caddy](https://caddyserver.com) terminates TLS on `:443` with automatic Let's Encrypt and reverse-proxies `/v1/*` to vLLM. A Grafana dashboard for token throughput, time-to-first-token, latency, and KV-cache utilization is available at `https://<domain>/grafana/`.
+The model weights ship as a separate logically bound image (`us.kheeper.com/public/gemma4-weights:v1.0.0`); bootc pulls it alongside the OS image but as independently-cached storage, and vLLM mounts it read-only at `/model`. vLLM serves the API on `127.0.0.1:8000`; [Caddy](https://caddyserver.com) terminates TLS on `:443` with automatic Let's Encrypt and reverse-proxies `/v1/*` to vLLM. [Open WebUI](https://github.com/open-webui/open-webui) provides a chat interface at `https://<domain>/`. A Grafana dashboard for token throughput, time-to-first-token, latency, and KV-cache utilization is available at `https://<domain>/grafana/`.
 
 ## Hardware requirements
 
@@ -71,7 +71,7 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/gemma4:v0.2.3
+kheeper releases start config.json --image us.kheeper.com/public/gemma4:v0.3.0
 ```
 
 That writes a default `./config.json` that you'll need to complete, looking something like this:
@@ -94,12 +94,12 @@ Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/gemma4:v0.2.3 \
+    --image us.kheeper.com/public/gemma4:v0.3.0 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/gemma4:v0.2.3` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/gemma4:v0.3.0` is the image it's built from.
 
 First boot takes roughly 40 minutes: ~25 min for bootc to pull the OS image plus the ~59 GB `gemma4-weights` image into its storage, ~10 min to deploy and soft-reboot, ~5 min for vLLM to load the model into VRAM. Wait until `kheeper releases list $ORG/$HOST` shows the release has been booted.
 

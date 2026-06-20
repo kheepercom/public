@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.3.0
+
+### Features
+
+- Open WebUI chat interface at `https://<domain>/`, inherited from `llm-base` v0.3.0
+
+### Changes
+
+- Rebuild on `llm-base` v0.3.0 (bind-mount weight mounting, Open WebUI, vLLM v0.22.0)
+
 ## v0.2.3
 
 ### Bug Fixes
