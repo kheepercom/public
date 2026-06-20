@@ -2,6 +2,12 @@
 Description=Pi-hole DNS sinkhole
 Wants=network-online.target
 After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Restart=on-failure
+RestartSec=10s
 
 [Container]
 Image=docker.io/pihole/pihole:PIHOLE_VERSION_PLACEHOLDER

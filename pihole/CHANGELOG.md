@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.4
+
+### Fixes
+
+- Retry on failure when the container image pull fails at boot (e.g. transient DNS resolution)
+
 ## v0.1.3
 
 ### Fixes
