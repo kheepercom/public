@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.3
+
+### Fixes
+
+- Run the container on a dual-stack Podman network so IPv6 DNS queries reach Pi-hole
+
 ## v0.1.2
 
 ### Changes

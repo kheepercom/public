@@ -25,6 +25,7 @@ RUN chmod 0755 /usr/local/sbin/pihole-firewall.sh
 COPY pihole-firewall.service /usr/lib/systemd/system/pihole-firewall.service
 RUN systemctl enable pihole-firewall
 
+COPY pihole.network /usr/share/containers/systemd/pihole.network
 COPY pihole.container /usr/share/containers/systemd/pihole.container
 RUN sed -i "s/PIHOLE_VERSION_PLACEHOLDER/${PIHOLE_VERSION}/" /usr/share/containers/systemd/pihole.container
 

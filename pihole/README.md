@@ -53,6 +53,7 @@ gcloud compute instances create $HOST \
     --zone us-central1-a \
     --machine-type c4-standard-2 \
     --boot-disk-size 40GB \
+    --metadata=kheeper-region=us.kheeper.com \
     --tags=allow-https,allow-pihole-dns
 ```
 
@@ -65,19 +66,19 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/pihole:v0.1.2
+kheeper releases start config.json --image us.kheeper.com/public/pihole:v0.1.3
 ```
 
 That writes a default `./config.json`. Edit it so `domain` matches your DNS record, set `admin_password`, and list at least one CIDR in `dns_allowed_cidrs`. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/pihole:v0.1.2 \
+    --image us.kheeper.com/public/pihole:v0.1.3 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/pihole:v0.1.2` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/pihole:v0.1.3` is the image it's built from.
 
 ## Alternative platforms
 
@@ -94,5 +95,7 @@ If `dns_allowed_cidrs` includes IPv6 entries, the host VM must have an IPv6 addr
 gcloud compute firewall-rules create allow-pihole-dns-v6 \
     --allow tcp:53,udp:53 \
     --source-ranges <comma-separated IPv6 CIDRs from dns_allowed_cidrs> \
-    --target-tags https
+    --target-tags allow-pihole-dns-v6
 ```
+
+Add `allow-pihole-dns-v6` to the VM's `--tags` so the instance opts into this rule alongside `allow-https` and `allow-pihole-dns`.

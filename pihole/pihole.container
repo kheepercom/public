@@ -6,6 +6,7 @@ After=network-online.target
 [Container]
 Image=docker.io/pihole/pihole:PIHOLE_VERSION_PLACEHOLDER
 EnvironmentFile=/etc/kheeper/pihole.env
+Network=pihole.network
 PublishPort=53:53/tcp
 PublishPort=53:53/udp
 PublishPort=[::]:53:53/tcp

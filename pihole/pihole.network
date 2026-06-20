@@ -1,0 +1,9 @@
+[Network]
+NetworkName=pihole
+# Dual-stack: the host is reachable over IPv6 (often IPv6-only via its AAAA
+# record), so the container needs an IPv6 address for podman to forward the
+# published [::]:53 port to Pi-hole.
+IPv6=true
+# Disable podman's per-network DNS (aardvark-dns) — it binds the bridge
+# gateway on :53 and would collide with Pi-hole's published 0.0.0.0:53.
+DisableDNS=true

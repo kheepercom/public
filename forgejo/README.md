@@ -56,6 +56,7 @@ gcloud compute instances create $HOST \
     --zone us-central1-a \
     --machine-type c4-standard-2 \
     --boot-disk-size 40GB \
+    --metadata=kheeper-region=us.kheeper.com \
     --tags=allow-https,allow-forgejo-ssh,allow-admin-ssh
 ```
 
