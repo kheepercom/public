@@ -1,15 +1,14 @@
-FROM us.kheeper.com/public/llm-base:v0.2.1
+FROM us.kheeper.com/public/llm-base:v0.3.0
 
 # Model weights as a logically bound image. bootc pulls gemma4-weights into
-# /usr/lib/bootc/storage alongside this OS image, separately versioned, so OS
-# rebuilds never re-pull the multi-tens-of-GB weight layer.
+# /sysroot/ostree/bootc/storage alongside this OS image, separately versioned,
+# so OS rebuilds never re-pull the multi-tens-of-GB weight layer.
+# llm-model-link.service (from llm-base) resolves this to /var/lib/llm-model
+# at boot; the vLLM container bind-mounts that path at /model.
 COPY llm-model.image /usr/share/containers/systemd/llm-model.image
 RUN install -d -m 0755 /usr/lib/bootc/bound-images.d \
 	&& ln -s ../../../share/containers/systemd/llm-model.image \
 		/usr/lib/bootc/bound-images.d/llm-model.image
-
-# Mount the weights image read-only into the vLLM container at /model.
-COPY 10-model.conf /usr/share/containers/systemd/llm-vllm.container.d/10-model.conf
 
 # Static env: the model identity vLLM advertises on /v1/models.
 COPY llm-vllm-model.env /etc/kheeper/llm-vllm-model.env

@@ -63,13 +63,15 @@ RUN ln -sf /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem /etc/pki/tls/certs/
 	&& dnf install -y nvidia-container-toolkit \
 	&& dnf clean all
 
-# 3. vLLM container as a logically bound image. bootc pulls it into
-#    /usr/lib/bootc/storage alongside the OS image — no build-time skopeo,
-#    no baked-in additional image store.
+# 3. vLLM and Open WebUI containers as logically bound images. bootc pulls
+#    them into /usr/lib/bootc/storage alongside the OS image.
 COPY llm-vllm.image /usr/share/containers/systemd/llm-vllm.image
+COPY llm-webui.image /usr/share/containers/systemd/llm-webui.image
 RUN install -d -m 0755 /usr/lib/bootc/bound-images.d \
 	&& ln -s ../../../share/containers/systemd/llm-vllm.image \
-		/usr/lib/bootc/bound-images.d/llm-vllm.image
+		/usr/lib/bootc/bound-images.d/llm-vllm.image \
+	&& ln -s ../../../share/containers/systemd/llm-webui.image \
+		/usr/lib/bootc/bound-images.d/llm-webui.image
 
 # 4. Firewall: 80/443 only; vLLM stays on loopback
 RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
@@ -84,16 +86,20 @@ COPY grafana-subpath.env.khtmpl /etc/kheeper/grafana-subpath.env.khtmpl
 RUN install -d -m 0755 /usr/lib/systemd/system/grafana.service.d
 COPY grafana-subpath.conf /usr/lib/systemd/system/grafana.service.d/10-llm.conf
 
-# 7. vLLM quadlet + env template + CDI init.
-#    The leaf image binds the model weights as a logically bound image (a
-#    FROM-scratch *-weights image mounted at /model via an
-#    llm-vllm.container.d drop-in) and ships a static env file with
+# 7. vLLM quadlet + Open WebUI quadlet + env templates + CDI init + model-link.
+#    The leaf image declares model weights as a logically bound image (a
+#    FROM-scratch *-weights image) and ships a static env file with
 #    VLLM_SERVED_MODEL_NAME to /etc/kheeper/llm-vllm-model.env.
+#    llm-model-link resolves the bound image to a filesystem path at boot.
 COPY llm-vllm.container /usr/share/containers/systemd/llm-vllm.container
 COPY llm-vllm.env.khtmpl /etc/kheeper/llm-vllm.env.khtmpl
+COPY llm-webui.container /usr/share/containers/systemd/llm-webui.container
+COPY llm-webui.env.khtmpl /etc/kheeper/llm-webui.env.khtmpl
 COPY llm-cdi-init.service /usr/lib/systemd/system/llm-cdi-init.service
 COPY --chmod=0755 llm-cdi-init.sh /usr/local/sbin/llm-cdi-init
-RUN systemctl enable llm-cdi-init
+COPY llm-model-link.service /usr/lib/systemd/system/llm-model-link.service
+COPY --chmod=0755 llm-model-link.sh /usr/local/sbin/llm-model-link
+RUN systemctl enable llm-cdi-init llm-model-link
 
 # 8. tmpfiles.d
 COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-llm.conf

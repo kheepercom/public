@@ -1,0 +1,22 @@
+[Unit]
+Description=Open WebUI chat interface
+After=llm-vllm.service network-online.target
+Wants=llm-vllm.service network-online.target
+
+[Container]
+Image=ghcr.io/open-webui/open-webui:v0.9.6
+ContainerName=llm-webui
+GlobalArgs=--storage-opt additionalimagestore=/usr/lib/bootc/storage
+Network=host
+Environment=HOST=127.0.0.1
+Environment=PORT=8080
+EnvironmentFile=/etc/kheeper/llm-webui.env
+Volume=/var/lib/open-webui:/app/backend/data:Z
+
+[Service]
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=120s
+
+[Install]
+WantedBy=multi-user.target

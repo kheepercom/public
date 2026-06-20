@@ -17,16 +17,16 @@ Inherits `admin_authorized_keys` from [`base`](../base). Adds the `.llm` config 
 
 ## Ports
 
-Inherits `22/tcp` from [`base`](../base). Opens `80/tcp` (Caddy ACME HTTP challenge) and `443/tcp` (HTTPS). vLLM and Grafana stay on `127.0.0.1`; Caddy reverse-proxies `/v1/*` to vLLM and `/grafana/*` to Grafana.
+Inherits `22/tcp` from [`base`](../base). Opens `80/tcp` (Caddy ACME HTTP challenge) and `443/tcp` (HTTPS). vLLM, Open WebUI, and Grafana stay on `127.0.0.1`; Caddy reverse-proxies `/v1/*` to vLLM, `/grafana/*` to Grafana, and `/` to Open WebUI.
 
 ## Layering on this image
 
-vLLM itself is a logically bound image here — bootc pulls it into `/usr/lib/bootc/storage` rather than a pre-pulled additional store, and the vLLM quadlet carries `--storage-opt additionalimagestore=/usr/lib/bootc/storage` so podman resolves both the vLLM image and the leaf's weights image from bootc's store.
+vLLM itself is a logically bound image — bootc pulls it into `/usr/lib/bootc/storage`. Model weights are also bound images; at boot, `llm-model-link.service` resolves the leaf's weights image to its unpacked layer in bootc's store and symlinks `/var/lib/llm-model` to it. The vLLM container bind-mounts that path at `/model`.
 
-A leaf image binds a weights image (built `FROM scratch`, model files at its root), mounts it into vLLM, and declares which model name vLLM advertises:
+A leaf image binds a weights image (built `FROM scratch`, model files at its root) and declares which model name vLLM advertises:
 
 ```Containerfile
-FROM us.kheeper.com/public/llm-base:v0.2.1
+FROM us.kheeper.com/public/llm-base:v0.3.0
 
 # Model weights as a logically bound image, pulled by bootc separately from
 # the OS image (only re-pulled when the weights tag changes).
@@ -34,9 +34,6 @@ COPY llm-model.image /usr/share/containers/systemd/llm-model.image
 RUN install -d -m 0755 /usr/lib/bootc/bound-images.d \
 	&& ln -s ../../../share/containers/systemd/llm-model.image \
 		/usr/lib/bootc/bound-images.d/llm-model.image
-
-# Mount the weights image read-only into the vLLM container at /model.
-COPY 10-model.conf /usr/share/containers/systemd/llm-vllm.container.d/10-model.conf
 
 # Static env: the model name vLLM advertises on /v1/models.
 COPY llm-vllm-model.env /etc/kheeper/llm-vllm-model.env
@@ -49,13 +46,6 @@ RUN bootc container lint
 ```ini
 [Image]
 Image=us.kheeper.com/public/<model>-weights:v1.0.0
-```
-
-`10-model.conf` mounts it (the image rootfs lands at `/model`):
-
-```ini
-[Container]
-Mount=type=image,source=us.kheeper.com/public/<model>-weights:v1.0.0,destination=/model,readwrite=false
 ```
 
 `llm-vllm-model.env` must set at least:
@@ -75,8 +65,10 @@ VLLM_EXTRA_ARGS=--trust-remote-code --kv-cache-dtype fp8
 - NVIDIA open driver via RPM Fusion `akmod-nvidia-open`, built at image-build time against the kernel pinned in [`base`](../base); `nvidia-persistenced` enabled
 - `nvidia-container-toolkit` in CDI mode; one-shot `llm-cdi-init.service` generates `/etc/cdi/nvidia.yaml` from the host's actual GPU on first boot
 - vLLM (`docker.io/vllm/vllm-openai`) as a logically bound image, pulled by bootc into `/usr/lib/bootc/storage` alongside the OS image — no build-time skopeo, no baked-in additional image store
-- Podman quadlet `llm-vllm.container` runs vLLM with `AddDevice=nvidia.com/gpu=all` and `--storage-opt additionalimagestore=/usr/lib/bootc/storage` so podman resolves the vLLM and weights images from bootc's store; the model is supplied by a leaf via a `llm-vllm.container.d` drop-in mounting a weights image at `/model`
-- Caddy reverse proxy with automatic TLS via Let's Encrypt; 10-minute read/write timeouts on `/v1/*` for long streaming completions; `/grafana/*` proxied with sub-path config injected via a systemd drop-in
+- `llm-model-link.service` resolves the leaf's bound weights image to `/var/lib/llm-model` at boot by reading bootc's store metadata and symlinking to the unpacked layer — no data copy, no `additionalimagestore` mount
+- Podman quadlet `llm-vllm.container` runs vLLM with `AddDevice=nvidia.com/gpu=all`; model weights bind-mounted read-only from `/var/lib/llm-model` at `/model`
+- [Open WebUI](https://github.com/open-webui/open-webui) (`ghcr.io/open-webui/open-webui`) as a bound image; provides a ChatGPT-style browser UI at `https://<domain>/` with its own login system (first visitor creates the admin account); data persisted in `/var/lib/open-webui`
+- Caddy reverse proxy with automatic TLS via Let's Encrypt; `/v1/*` → vLLM (10-minute read/write timeouts), `/grafana/*` → Grafana, `/` → Open WebUI
 - Firewall opens `80/tcp` + `443/tcp`
 - vmsingle scrape config and Grafana dashboard for vLLM's Prometheus metrics: tokens/sec, time-to-first-token (p50/p95/p99), e2e latency (p50/p95/p99), active + queued requests, KV cache utilization, request failures
 - vLLM compile/JIT caches persisted in `/var/lib/vllm` across reboots

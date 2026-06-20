@@ -120,21 +120,6 @@ curl -s https://<your-domain>/v1/chat/completions \
     }'
 ```
 
-## Browser chat UI
-
-For a ChatGPT-style web interface, [Open WebUI](https://github.com/open-webui/open-webui) takes any OpenAI-compatible endpoint as a backend. One Docker command on your laptop:
-
-```bash
-docker run -d -p 3000:8080 \
-    -e OPENAI_API_BASE_URL=https://<your-domain>/v1 \
-    -e OPENAI_API_KEY=<your-api-key> \
-    -v open-webui:/app/backend/data \
-    --name open-webui \
-    ghcr.io/open-webui/open-webui:main
-```
-
-Then open <http://localhost:3000>, create the local admin account (Open WebUI's own login — separate from the kheeper image), and `google/gemma-4-31B-it` shows up in the model picker.
-
 ## Metrics
 
 Grafana lives at `https://<your-domain>/grafana/` (default credentials `admin` / `admin`; Grafana forces a password change on first login). The bundled "vLLM" dashboard (inherited from [`llm-base`](../llm-base)) shows tokens/sec, time-to-first-token, end-to-end latency, active/queued requests, KV cache utilization, and request failure rate.

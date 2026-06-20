@@ -1,0 +1,11 @@
+[Unit]
+Description=Link model weights from bootc bound-image store
+ConditionPathExists=/usr/share/containers/systemd/llm-model.image
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/llm-model-link
+
+[Install]
+WantedBy=multi-user.target

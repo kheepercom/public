@@ -1,16 +1,14 @@
 [Unit]
 Description=vLLM inference server
-After=llm-cdi-init.service network-online.target
-Requires=llm-cdi-init.service
+After=llm-cdi-init.service llm-model-link.service network-online.target
+Requires=llm-cdi-init.service llm-model-link.service
 Wants=network-online.target
 
 [Container]
-Image=docker.io/vllm/vllm-openai:v0.21.0
+Image=docker.io/vllm/vllm-openai:v0.22.0
 ContainerName=llm-vllm
-# Let podman read bootc's logically-bound-image store for this container
-# invocation only (not globally in storage.conf). It finds both the vLLM image
-# (Image= above) and the leaf's weights image (mounted via a drop-in) here.
-# Store path on bootc: /usr/lib/bootc/storage.
+# Let podman read bootc's logically-bound-image store so it can find the
+# vLLM image (Image= above) which is pulled as a bound image.
 GlobalArgs=--storage-opt additionalimagestore=/usr/lib/bootc/storage
 # Two files: llm-vllm-model.env is the static, model-specific env shipped by
 # the leaf image (sets VLLM_SERVED_MODEL_NAME, etc.); llm-vllm.env is rendered
@@ -18,6 +16,7 @@ GlobalArgs=--storage-opt additionalimagestore=/usr/lib/bootc/storage
 EnvironmentFile=/etc/kheeper/llm-vllm-model.env
 EnvironmentFile=/etc/kheeper/llm-vllm.env
 PublishPort=127.0.0.1:8000:8000
+Volume=/var/lib/llm-model:/model:ro
 Volume=/var/lib/vllm:/root/.cache:Z
 AddDevice=nvidia.com/gpu=all
 SecurityLabelDisable=true

@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.3.0
+
+### Features
+
+- Built-in [Open WebUI](https://github.com/open-webui/open-webui) chat interface at `https://<domain>/`, proxied by Caddy; data persisted in `/var/lib/open-webui`
+
+### Changes
+
+- Model weights are now bind-mounted from the filesystem instead of using podman's `Mount=type=image` (works around a bootc/podman interop bug where `additionalimagestore` layers can't be mounted)
+- New `llm-model-link.service` resolves the leaf's bound weights image to `/var/lib/llm-model` at boot by symlinking to the unpacked layer in bootc's store — no data copy
+- Fix vLLM container image version: `.container` now references v0.22.0 to match the `.image` bound-image declaration
+
+### Breaking
+
+- Leaf images no longer supply a `llm-vllm.container.d/10-model.conf` drop-in; the base image bind-mounts `/var/lib/llm-model` at `/model` directly. Remove the `10-model.conf` COPY from leaf Containerfiles.
+
 ## v0.2.1
 
 ### Changes
