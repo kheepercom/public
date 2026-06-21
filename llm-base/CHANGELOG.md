@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1
+
+### Fixes
+
+- Open WebUI base URL now includes `/v1` so the model dropdown discovers vLLM's models
+
 ## v0.3.0
 
 ### Features

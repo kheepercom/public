@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/llm-base:v0.3.0
+FROM us.kheeper.com/public/llm-base:v0.3.1
 
 # Model weights as a logically bound image. bootc pulls gemma4-weights into
 # /sysroot/ostree/bootc/storage alongside this OS image, separately versioned,

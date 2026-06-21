@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.1
+
+### Fixes
+
+- Rebuild on `llm-base` v0.3.1 (fix Open WebUI model discovery)
+
 ## v0.3.0
 
 ### Features
