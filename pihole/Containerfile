@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/base:v0.1.2
+FROM us.kheeper.com/public/base:v0.2.0
 
 ARG PIHOLE_VERSION=2026.05.0
 

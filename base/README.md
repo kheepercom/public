@@ -17,7 +17,7 @@ The host firewall opens `22/tcp` for SSH. Downstream images add their own ports 
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/base:v0.1.2
+FROM us.kheeper.com/public/base:v0.2.0
 
 # install your app, add your firewall openings, drop in unit files, etc.
 ```

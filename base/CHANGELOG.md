@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0
+
+### Changes
+
+- Mask automatic bootc updates
+
 ## v0.1.2
 
 ### Changes

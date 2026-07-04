@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.2
+
+### Changes
+
+- Rebuild on `llm-base` v0.3.2
+
 ## v0.3.1
 
 ### Fixes

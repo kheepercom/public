@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/metrics-base:v0.1.2
+FROM us.kheeper.com/public/metrics-base:v0.2.0
 
 ARG WALG_VERSION=v3.0.8
 ARG KHEEPER_VERSION=v0.13.1
