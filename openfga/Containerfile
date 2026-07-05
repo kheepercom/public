@@ -18,7 +18,11 @@ RUN curl -fLO https://github.com/openfga/openfga/releases/download/v${VERSION}/o
 	&& tar xzf openfga_${VERSION}_linux_amd64.tar.gz -C /usr/local/bin openfga \
 	&& rm openfga_${VERSION}_linux_amd64.tar.gz
 
-RUN useradd --system --no-create-home --shell /sbin/nologin --user-group --groups postgres openfga
+# The openfga user must come from sysusers.d, not a bare build-time useradd:
+# bootc 3-way-merges /etc, so a build-only /etc/passwd write is dropped on a
+# fresh host and the service dies with 217/USER. Nothing references the user at
+# build time (no chowns), so the declarative conf alone suffices.
+COPY openfga.sysusers /usr/lib/sysusers.d/openfga.conf
 
 COPY openfga.service /usr/lib/systemd/system/openfga.service
 COPY openfga.env.khtmpl /etc/kheeper/openfga.env.khtmpl

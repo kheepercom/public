@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.2
+
+### Changes
+
+- Fix `openfga` failing with `217/USER` ("Unknown user: openfga") on a fresh host. The `openfga` user was created only by a build-time `useradd`, whose `/etc/passwd` write bootc drops during its 3-way `/etc` merge on first boot. Now shipped via `/usr/lib/sysusers.d/openfga.conf` (regenerated every boot); nothing references the user at build time, so the build-time `useradd` is dropped. UID/GID pinned to 972.
+
 ## v0.2.1
 
 ### Changes

@@ -25,7 +25,14 @@ RUN curl -fLO https://codeberg.org/forgejo/forgejo/releases/download/v${VERSION}
 	&& install -m 0755 forgejo-${VERSION}-linux-amd64 /usr/local/bin/forgejo \
 	&& rm forgejo-${VERSION}-linux-amd64
 
-RUN useradd --system --no-create-home --shell /sbin/nologin --user-group --groups postgres git
+# The git user must come from sysusers.d, not a bare build-time useradd: bootc
+# 3-way-merges /etc, so a build-only /etc/passwd write is dropped on a fresh
+# host and the service dies with 217/USER. Ship the declarative conf (regenerated
+# every boot) AND create the user at build so the /etc/forgejo chowns below
+# resolve; pin the UID/GID so /var/lib/forgejo data keeps its owner.
+COPY git.sysusers /usr/lib/sysusers.d/forgejo-git.conf
+RUN groupadd --system --gid 973 git \
+	&& useradd --system --uid 973 --gid 973 --no-create-home --home-dir /var/lib/forgejo --shell /sbin/nologin --groups postgres git
 
 RUN install -d -o root -g git -m 0770 /etc/forgejo
 COPY --chown=root:git --chmod=0660 app.ini /etc/forgejo/app.ini

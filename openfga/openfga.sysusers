@@ -1,0 +1,3 @@
+g openfga 972 -
+u openfga 972:972 "OpenFGA" - /sbin/nologin
+m openfga postgres

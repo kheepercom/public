@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.2
+
+### Changes
+
+- Fix `forgejo-init`/`forgejo` failing with `217/USER` ("Unknown user: git") on a fresh host. The `git` user was created only by a build-time `useradd`, whose `/etc/passwd` write bootc drops during its 3-way `/etc` merge on first boot. Now shipped via `/usr/lib/sysusers.d/forgejo-git.conf` (regenerated every boot), matching how `base` provides `admin`. UID/GID pinned to 973 so `/var/lib/forgejo` data keeps its owner across rebuilds.
+
 ## v0.3.1
 
 ### Changes

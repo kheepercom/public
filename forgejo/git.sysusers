@@ -1,0 +1,3 @@
+g git 973 -
+u git 973:973 "Forgejo git forge" /var/lib/forgejo /sbin/nologin
+m git postgres
