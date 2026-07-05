@@ -1,1 +1,1 @@
-{ "name": "forgejo", "users": ["git"] }
+{ "name": "forgejo", "users": [{ "name": "git" }] }

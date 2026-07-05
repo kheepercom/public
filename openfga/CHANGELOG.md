@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.1
+
+### Changes
+
+- Rebuild on `postgres-base` v0.3.1
+
+## v0.2.0
+
+### Changes
+
+- Bump `postgres-base` to v0.3.0. `database.users` items are now objects; `starter.d/database.json` updated to `{ "name": "openfga" }` (no password — OpenFGA keeps peer auth over the unix socket)
+
 ## v0.1.4
 
 ### Changes

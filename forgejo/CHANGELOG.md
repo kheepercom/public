@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.1
+
+### Changes
+
+- Rebuild on `postgres-base` v0.3.1
+
+## v0.3.0
+
+### Changes
+
+- Bump `postgres-base` to v0.3.0. `database.users` items are now objects; `starter.d/database.json` updated to `{ "name": "git" }` (no password — Forgejo keeps peer auth over the unix socket)
+
 ## v0.2.3
 
 ### Changes

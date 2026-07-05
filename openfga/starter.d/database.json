@@ -1,1 +1,1 @@
-{ "name": "openfga", "users": ["openfga"] }
+{ "name": "openfga", "users": [{ "name": "openfga" }] }
