@@ -69,19 +69,19 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/forgejo:v0.3.2
+kheeper releases start config.json --image us.kheeper.com/public/forgejo:v0.4.1
 ```
 
 That writes a default `./config.json`. Edit it so `domain` matches your DNS record, set `admin_username`, `admin_password` (min 12 chars), and `admin_email`. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/forgejo:v0.3.2 \
+    --image us.kheeper.com/public/forgejo:v0.4.1 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/forgejo:v0.3.2` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/forgejo:v0.4.1` is the image it's built from.
 
 ## Alternative platforms
 
@@ -99,6 +99,40 @@ git clone git@<your-domain>:<user>/<repo>.git
 ```
 
 Add your public key in **Settings → SSH / GPG Keys** in the web UI before pushing.
+
+## Actions (CI)
+
+Forgejo Actions is enabled, with a runner co-located on the same host — no
+separate runner machine to provision. On first boot the host registers a runner
+against the local instance automatically; confirm it in the web UI under
+**Site Administration → Actions → Runners**.
+
+The runner uses the **host executor**: workflow steps run directly on the host as
+the unprivileged `act-runner` user, rather than in containers. Target it with
+`runs-on: native`:
+
+```yaml
+on: [push]
+jobs:
+  build:
+    runs-on: native
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "hello from CI"
+```
+
+Notes:
+
+- Because steps run on the host, workflows have host-level access as `act-runner`.
+  Only run workflows you trust.
+- `node` is installed for JS actions (`actions/checkout`, etc.); actions not hosted
+  on this instance resolve via `https://code.forgejo.org`.
+- `podman` is available (rootless — `act-runner` has a subuid/subgid range) and a
+  Docker-compatible API socket runs continuously (`act-runner-podman.service`).
+  `DOCKER_HOST` is preset for every job, so a container test harness like
+  testcontainers works with no setup — just run your tests.
+- The actions cache server is off by default (avoids binding an extra port); enable
+  it in `/etc/act-runner/config.yaml` if you need `actions/cache`.
 
 ## Rotating the admin password
 

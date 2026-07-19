@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.4.0
+
+### Features
+
+- Forgejo Actions enabled (`[actions] ENABLED = true`), with a co-located runner
+  (`act_runner` v12.13.0) so CI runs on the same machine — no separate runner host
+- Runner uses the **host executor** (`native:host`): job steps run directly on the
+  host as the unprivileged `act-runner` user (uid/gid 971, via `sysusers.d`). Target
+  it from workflows with `runs-on: native`. `nodejs` installed so JS actions
+  (e.g. `actions/checkout`) run
+- `act-runner-init.service` waits for Forgejo's HTTP API, mints a runner
+  registration token via the `git` user, and registers the runner on first boot
+  (idempotent — skipped once `/var/lib/act-runner/.runner` exists); `act-runner.service`
+  then runs `act_runner daemon`
+- `DEFAULT_ACTIONS_URL = https://code.forgejo.org` so actions not hosted on this
+  instance resolve. No new firewall ports (the runner only dials `127.0.0.1:3500`)
+- `act-runner` gets a subordinate uid/gid range (`/etc/subuid` + `/etc/subgid`)
+  so rootless podman works under the host executor — CI workflows that stand up
+  containers (e.g. testcontainers) run. Without it `podman run` fails with
+  `no subuid ranges found for user act-runner`. Written at boot by
+  `act-runner-subid.service` (idempotent) rather than at build time, since bootc
+  drops build-time `/etc` writes on a fresh host — the same reason the `git` and
+  `act-runner` accounts come from `sysusers.d`
+- A Docker-compatible podman API socket runs continuously as `act-runner`
+  (`act-runner-podman.service`), and `DOCKER_HOST` is injected into every job
+  (runner `envs` in `act-runner-config.yaml`), so container test harnesses like
+  testcontainers work with no per-workflow podman setup
+
 ## v0.3.2
 
 ### Changes

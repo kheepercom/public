@@ -1,0 +1,13 @@
+[Unit]
+Description=Register the Forgejo Actions runner
+After=forgejo.service
+Requires=forgejo.service
+Before=act-runner.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/act-runner-init
+
+[Install]
+WantedBy=act-runner.service

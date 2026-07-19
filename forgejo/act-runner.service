@@ -1,0 +1,48 @@
+[Unit]
+Description=Forgejo Actions runner (host executor)
+After=forgejo.service act-runner-init.service act-runner-podman.service
+Requires=act-runner-init.service
+Wants=forgejo.service act-runner-podman.service
+
+[Service]
+User=act-runner
+Group=act-runner
+WorkingDirectory=/var/lib/act-runner
+Environment=HOME=/var/lib/act-runner
+# Jobs that run rootless podman directly (e.g. `podman build`, not via the
+# DOCKER_HOST socket) inherit this daemon's environment. Point it at the
+# lingering user session (same as act-runner-podman.service) so crun can create
+# the container's cgroup scope on the user bus; without XDG_RUNTIME_DIR it falls
+# back to the system bus and StartTransientUnit is denied by polkit
+# ("requires interactive authentication"). uid 971 is pinned in
+# act-runner.sysusers; the session is up because we order After the podman unit,
+# which is After user@971.service.
+Environment=XDG_RUNTIME_DIR=/run/user/971
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/971/bus
+ExecStart=/usr/local/bin/act_runner daemon --config /etc/act-runner/config.yaml
+Restart=always
+RestartSec=2s
+
+# The host executor runs workflow steps directly on this machine, so the sandbox
+# is deliberately light — jobs need to spawn processes, write their workdir, and
+# run rootless containers. Three hardening knobs are deliberately NOT set:
+#   - RestrictSUIDSGID: its seccomp filter makes GNU tar's directory creation
+#     fail with ENOSYS ("Cannot mkdir: Function not implemented"), breaking common
+#     steps like actions/setup-go extracting a tarball.
+#   - NoNewPrivileges: rootless podman needs the setuid newuidmap/newgidmap
+#     helpers to write the container's uid/gid map; NoNewPrivileges neutralises
+#     them ("newuidmap: write to uid_map failed: Operation not permitted").
+#   - ProtectHome: it overmounts /run/user with an inaccessible tmpfs, which
+#     hides the lingering user session (/run/user/971) that XDG_RUNTIME_DIR
+#     above points at — jobs running rootless `podman build` directly then fail
+#     with "lstat /run/user/971: permission denied". BindPaths= can't reliably
+#     re-expose it because /run/user/971 is itself a shared submount masked by
+#     the overmount. The sibling act-runner-podman.service runs without
+#     ProtectHome for the same reason.
+# The trust model is already "run only workflows you trust" (see README).
+ProtectSystem=full
+PrivateTmp=yes
+ReadWritePaths=/var/lib/act-runner
+
+[Install]
+WantedBy=multi-user.target

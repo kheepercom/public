@@ -1,10 +1,13 @@
 FROM us.kheeper.com/public/postgres-base:v0.3.1
 
-ARG VERSION=15.0.2
+ARG VERSION=15.0.4
+ARG RUNNER_VERSION=12.13.0
 
+# nodejs runs the JS-based actions (e.g. actions/checkout) under the host executor.
 RUN dnf install -y \
 	caddy \
 	git \
+	nodejs \
 	&& dnf clean all \
 	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/lib/caddy /var/log/* /tmp/* \
 	&& rm -rf /run/dnf /run/lock /run/log
@@ -24,6 +27,10 @@ COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
 RUN curl -fLO https://codeberg.org/forgejo/forgejo/releases/download/v${VERSION}/forgejo-${VERSION}-linux-amd64 \
 	&& install -m 0755 forgejo-${VERSION}-linux-amd64 /usr/local/bin/forgejo \
 	&& rm forgejo-${VERSION}-linux-amd64
+
+RUN curl -fLO https://code.forgejo.org/forgejo/runner/releases/download/v${RUNNER_VERSION}/forgejo-runner-${RUNNER_VERSION}-linux-amd64 \
+	&& install -m 0755 forgejo-runner-${RUNNER_VERSION}-linux-amd64 /usr/local/bin/act_runner \
+	&& rm forgejo-runner-${RUNNER_VERSION}-linux-amd64
 
 # The git user must come from sysusers.d, not a bare build-time useradd: bootc
 # 3-way-merges /etc, so a build-only /etc/passwd write is dropped on a fresh
@@ -47,7 +54,31 @@ COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-forgejo.conf
 # from postgres-base; this starter default points it at the forgejo db/user.
 COPY starter.d/database.json /etc/kheeper/starter.d/database.json
 
-RUN systemctl enable forgejo-init forgejo
+# Forgejo Actions runner (host executor), co-located with Forgejo. Runs job
+# steps directly on the host as the unprivileged act-runner user (declared via
+# sysusers.d for the same bootc /etc-merge reason as git above). act-runner-init
+# registers it against the local instance on first boot.
+COPY act-runner.sysusers /usr/lib/sysusers.d/act-runner.conf
+COPY --chmod=0644 act-runner-config.yaml /etc/act-runner/config.yaml
+COPY act-runner.service /usr/lib/systemd/system/act-runner.service
+COPY act-runner-init.service /usr/lib/systemd/system/act-runner-init.service
+COPY --chmod=0755 act-runner-init.sh /usr/local/sbin/act-runner-init
+
+# Rootless podman for the host executor needs act-runner to have subuid/subgid
+# ranges. Provisioned at boot (see script) because bootc drops build-time /etc
+# writes on a fresh host.
+COPY act-runner-subid.service /usr/lib/systemd/system/act-runner-subid.service
+COPY --chmod=0755 act-runner-subid.sh /usr/local/sbin/act-runner-subid
+
+# Always-on podman API socket for the runner, so workflows use DOCKER_HOST
+# (preset in act-runner-config.yaml via runner.envs) without starting podman.
+# act-runner-linger gives the runner a systemd --user session so rootless
+# container DNS (aardvark-dns) has a user bus to attach to; the podman socket
+# runs inside that session.
+COPY act-runner-linger.service /usr/lib/systemd/system/act-runner-linger.service
+COPY act-runner-podman.service /usr/lib/systemd/system/act-runner-podman.service
+
+RUN systemctl enable forgejo-init forgejo act-runner-init act-runner-subid act-runner-linger act-runner-podman act-runner
 
 COPY forgejo-scrape.json /etc/victoria-metrics/scrape.d/forgejo.json
 COPY grafana-dashboards/forgejo.json /etc/grafana/dashboards/forgejo.json

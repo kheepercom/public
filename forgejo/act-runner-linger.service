@@ -1,0 +1,18 @@
+[Unit]
+Description=Enable lingering for act-runner (user session for rootless podman DNS)
+# Rootless podman's DNS (netavark spawns aardvark-dns) needs a systemd --user
+# session bus for the runner. Lingering makes logind start user@971.service at
+# boot, creating /run/user/971 and its D-Bus. Ordered before the podman socket
+# so that bus exists when netavark runs. Run at boot, not a build-time
+# /var/lib/systemd/linger file, because bootc does not re-sync /var onto an
+# already-provisioned host on update (same reasoning as act-runner-subid).
+Before=act-runner-podman.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Idempotent: enable-linger is a no-op once the user is already lingering.
+ExecStart=/usr/bin/loginctl enable-linger act-runner
+
+[Install]
+WantedBy=act-runner-podman.service

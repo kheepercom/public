@@ -1,0 +1,2 @@
+g act-runner 971 -
+u act-runner 971:971 "Forgejo Actions runner" /var/lib/act-runner /sbin/nologin

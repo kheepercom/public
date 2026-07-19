@@ -1,0 +1,14 @@
+[Unit]
+Description=Grant act-runner subuid/subgid ranges for rootless podman
+# Must land before the runner (and thus any job) starts. No forgejo dependency:
+# this only touches /etc/subuid + /etc/subgid.
+Before=act-runner.service
+ConditionPathExists=/usr/local/sbin/act-runner-subid
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/act-runner-subid
+
+[Install]
+WantedBy=act-runner.service

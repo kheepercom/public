@@ -1,0 +1,26 @@
+# Forgejo Actions runner (host executor). Registered against the local Forgejo
+# instance by act-runner-init on first boot; see /usr/local/sbin/act-runner-init.
+log:
+  level: info
+
+runner:
+  file: /var/lib/act-runner/.runner
+  capacity: 1
+  timeout: 3h
+  # Set at registration time (native:host); repeated here so the daemon reads a
+  # consistent label set. Host executor runs job steps directly on this machine.
+  labels:
+    - "native:host"
+  # Injected into every job so workflows reach the always-on podman API socket
+  # (act-runner-podman.service) via DOCKER_HOST — no per-workflow podman setup.
+  envs:
+    DOCKER_HOST: unix:///run/act-runner/podman.sock
+
+cache:
+  # The actions cache server would bind an extra port; leave it off for this
+  # single-host setup. Enable + set host/port if you need actions/cache.
+  enabled: false
+
+host:
+  # Parent dir for per-job working directories when running on the host.
+  workdir_parent: /var/lib/act-runner/workdir

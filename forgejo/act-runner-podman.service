@@ -1,0 +1,31 @@
+[Unit]
+Description=Podman API socket for the Forgejo Actions runner
+# Always-on Docker-compatible API socket so workflows (e.g. testcontainers) can
+# use DOCKER_HOST without starting podman themselves. DOCKER_HOST is injected
+# into every job via /etc/act-runner/config.yaml (runner.envs). Ordered before
+# the runner so the socket is up before any job runs.
+Before=act-runner.service
+# Run inside act-runner's lingering user session so netavark can start
+# aardvark-dns (rootless container DNS) against the user bus below; without it,
+# any job that stands up a container on a DNS-enabled network panics with
+# "aardvark-dns failed to start: Failed to connect to user scope bus".
+Requires=act-runner-linger.service
+After=act-runner-linger.service user@971.service
+
+[Service]
+User=act-runner
+Group=act-runner
+Environment=HOME=/var/lib/act-runner
+# RuntimeDirectory keeps the API socket at /run/act-runner/podman.sock (the path
+# DOCKER_HOST points at). The runtime dir and D-Bus address, however, point at
+# the lingering user session (/run/user/971) so netavark/aardvark-dns inherit a
+# reachable session bus. uid 971 is pinned in act-runner.sysusers.
+RuntimeDirectory=act-runner
+Environment=XDG_RUNTIME_DIR=/run/user/971
+Environment=DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/971/bus
+ExecStart=/usr/bin/podman system service --time=0 unix:///run/act-runner/podman.sock
+Restart=always
+RestartSec=2s
+
+[Install]
+WantedBy=multi-user.target
