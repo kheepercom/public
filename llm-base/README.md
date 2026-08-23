@@ -26,7 +26,7 @@ vLLM itself is a logically bound image — bootc pulls it into `/usr/lib/bootc/s
 A leaf image binds a weights image (built `FROM scratch`, model files at its root) and declares which model name vLLM advertises:
 
 ```Containerfile
-FROM us.kheeper.com/public/llm-base:v0.3.2
+FROM us.kheeper.com/public/llm-base:v0.3.3
 
 # Model weights as a logically bound image, pulled by bootc separately from
 # the OS image (only re-pulled when the weights tag changes).

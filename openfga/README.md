@@ -56,19 +56,19 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/openfga:v0.2.2
+kheeper releases start config.json --image us.kheeper.com/public/openfga:v0.2.3
 ```
 
 That writes a default `./config.json`. Edit it so `domain` matches your DNS record and set `key` to a strong preshared secret. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/openfga:v0.2.2 \
+    --image us.kheeper.com/public/openfga:v0.2.3 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/openfga:v0.2.2` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/openfga:v0.2.3` is the image it's built from.
 
 ## Alternative platforms
 

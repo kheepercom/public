@@ -1,7 +1,7 @@
-FROM us.kheeper.com/public/metrics-base:v0.2.0
+FROM us.kheeper.com/public/metrics-base:v0.2.1
 
 ARG WALG_VERSION=v3.0.8
-ARG KHEEPER_VERSION=v0.13.1
+ARG KHEEPER_VERSION=v0.17.1
 ARG POSTGRES_EXPORTER_VERSION=0.19.1
 
 RUN dnf install -y \

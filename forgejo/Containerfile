@@ -1,6 +1,6 @@
-FROM us.kheeper.com/public/postgres-base:v0.3.1
+FROM us.kheeper.com/public/postgres-base:v0.3.2
 
-ARG VERSION=15.0.4
+ARG VERSION=15.0.5
 ARG RUNNER_VERSION=12.13.0
 
 # nodejs runs the JS-based actions (e.g. actions/checkout) under the host executor.

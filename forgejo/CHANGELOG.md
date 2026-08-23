@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.1
+
+### Changes
+
+- Bump to forgejo v15.0.5
+- Rebuild on `postgres-base` v0.3.2
+
 ## v0.4.0
 
 ### Features

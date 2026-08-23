@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/metrics-base:v0.2.0
+FROM us.kheeper.com/public/metrics-base:v0.2.1
 
 ARG KERNEL_VERSION=7.0.10-201.fc44.x86_64
 # Open kmod source in RPM Fusion lags the proprietary driver. Pin userspace

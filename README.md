@@ -21,4 +21,4 @@ Or use these as inspiration to [make your own bootable images](https://kheeper.c
 1. Create an account on [kheeper.com](https://kheeper.com)
 1. [Install the kheeper CLI](https://kheeper.com/docs/getting-started/install)
 1. [Log in to the kheeper CLI](https://kheeper.com/docs/getting-started/login)
-1. Familiarize yourself with booting on [GCP](https://kheeper.com/docs/getting-started/boot-gcp), [AWS](https://kheeper.com/docs/guides/aws) or [bare metal](https://kheeper.com/docs/getting-started/boot-bare-metal).
+1. Familiarize yourself with booting on your chosen platform: either [GCP](https://kheeper.com/docs/getting-started/boot-gcp), [AWS](https://kheeper.com/docs/guides/aws) or [bare metal](https://kheeper.com/docs/getting-started/boot-bare-metal).
