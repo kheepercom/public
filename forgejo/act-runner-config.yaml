@@ -5,7 +5,7 @@ log:
 
 runner:
   file: /var/lib/act-runner/.runner
-  capacity: 1
+  capacity: 12
   timeout: 3h
   # Set at registration time (native:host); repeated here so the daemon reads a
   # consistent label set. Host executor runs job steps directly on this machine.

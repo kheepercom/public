@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0
+
+### Changes
+
+- Runner `capacity` raised from 1 to 12, so up to 12 jobs run concurrently instead
+  of queuing behind a single slot
+
 ## v0.4.1
 
 ### Changes
