@@ -15,7 +15,7 @@ Inherits `22/tcp` from [`base`](../base). Postgres binds to `127.0.0.1:5432` and
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/postgres-base:v0.3.2
+FROM us.kheeper.com/public/postgres-base:v0.4.0
 
 # install your app, configure it to talk to localhost:5432 (or the unix
 # socket at /var/run/postgresql), etc.

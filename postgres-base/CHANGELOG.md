@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Bump the kheeper CLI to v0.21.0
+- Bump postgres_exporter to 0.20.1
+- Bump wal-g to v3.0.9
+- Rebuild on `metrics-base` v0.3.0 (Grafana 13)
+
 ## v0.3.2
 
 ### Changes

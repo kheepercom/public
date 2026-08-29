@@ -1,8 +1,8 @@
-FROM us.kheeper.com/public/metrics-base:v0.2.1
+FROM us.kheeper.com/public/metrics-base:v0.3.0
 
-ARG WALG_VERSION=v3.0.8
-ARG KHEEPER_VERSION=v0.17.1
-ARG POSTGRES_EXPORTER_VERSION=0.19.1
+ARG WALG_VERSION=v3.0.9
+ARG KHEEPER_VERSION=v0.21.0
+ARG POSTGRES_EXPORTER_VERSION=0.20.1
 
 RUN dnf install -y \
 	postgresql-server \

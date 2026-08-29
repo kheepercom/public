@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.0
+
+### Changes
+
+- Bump Grafana to 13.2.0 (from 11.6.15)
+- Bump VictoriaMetrics to v1.150.0
+- Bump node_exporter to 1.12.1
+- Rebuild on `base` v0.2.2
+
 ## v0.2.1
 
 ### Changes

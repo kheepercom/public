@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.1.7
+
+### Changes
+
+- Bump Pi-hole to 2026.07.2
+- Rebuild on `base` v0.2.2
+
 ## v0.1.6
 
 ### Changes

@@ -1,6 +1,6 @@
-FROM us.kheeper.com/public/postgres-base:v0.3.2
+FROM us.kheeper.com/public/postgres-base:v0.4.0
 
-ARG LEGO_VERSION=v4.35.2
+ARG LEGO_VERSION=v5.4.0
 
 RUN curl -fsSL "https://github.com/go-acme/lego/releases/download/${LEGO_VERSION}/lego_${LEGO_VERSION}_linux_amd64.tar.gz" \
 		| tar -xz -C /usr/local/bin lego \

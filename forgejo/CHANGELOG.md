@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.6.0
+
+### Changes
+
+- Bump to Forgejo v16.0.3 (from v15.0.5). Git hooks now live in a centralized
+  location instead of being copied into every repository; existing repositories
+  keep working, and their leftover per-repository hook files can be cleaned up
+  by following the [upgrade guide](https://forgejo.org/docs/v16.0/admin/upgrade/#hooks)
+- Bump the Actions runner to v13.0.0 (from v12.13.0). The `add-path`, `set-output`
+  and `set-env` workflow commands are gone — write to `$FORGEJO_PATH`,
+  `$FORGEJO_OUTPUT` and `$FORGEJO_ENV` instead — and a failed expression
+  interpolation or an invalid job matrix is now a hard error rather than a warning
+- Rebuild on `postgres-base` v0.4.0 (kheeper CLI v0.21.0, Grafana 13)
+
 ## v0.5.0
 
 ### Changes

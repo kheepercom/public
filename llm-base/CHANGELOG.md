@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Bump vLLM to v0.28.0 (from v0.22.0)
+- Bump Open WebUI to v0.11.1 (from v0.9.6)
+- Pin `KERNEL_VERSION` to 7.1.10-200.fc44.x86_64, the kernel shipped by
+  `base` v0.2.2. The open NVIDIA kmod is compiled against this version at
+  build time, so it has to track the base layer
+- Rebuild on `metrics-base` v0.3.0 (Grafana 13)
+
+### Notes
+
+- The NVIDIA driver stays pinned at 595.58.03. RPM Fusion has 610.57.04, but
+  it ships no `akmod-nvidia-open` — only the unified `akmod-nvidia` — so the
+  `akmods --kmod nvidia-open` build here has no source to compile. See
+  MAINTAINERS.md
+
 ## v0.3.3
 
 ### Changes

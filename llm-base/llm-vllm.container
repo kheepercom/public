@@ -5,7 +5,7 @@ Requires=llm-cdi-init.service llm-model-link.service
 Wants=network-online.target
 
 [Container]
-Image=docker.io/vllm/vllm-openai:v0.22.0
+Image=docker.io/vllm/vllm-openai:v0.28.0
 ContainerName=llm-vllm
 # Let podman read bootc's logically-bound-image store so it can find the
 # vLLM image (Image= above) which is pulled as a bound image.

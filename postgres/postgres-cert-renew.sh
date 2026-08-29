@@ -20,13 +20,14 @@ else
 	days=30
 fi
 
-exec /usr/local/bin/lego \
+# v5 folded `renew` into `run`; it renews when the stored cert is due and is a
+# no-op otherwise. ARI can also pull the renewal earlier than --renew-days.
+exec /usr/local/bin/lego run \
 	--accept-tos \
 	--email "$EMAIL" \
 	--path "$LEGO_PATH" \
 	--http \
 	--domains "$target" \
-	renew \
 	"${profile_args[@]}" \
-	--days "$days" \
-	--renew-hook /usr/local/sbin/postgres-cert-deploy
+	--renew-days "$days" \
+	--deploy-hook /usr/local/sbin/postgres-cert-deploy

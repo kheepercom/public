@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.3.0
+
+### Changes
+
+- Bump lego to v5.4.0 (from v4.35.2). v5 redesigned the CLI: `renew` folded into
+  `run`, global flags became command flags, `--days` became `--renew-days`,
+  `--run-hook`/`--renew-hook` became `--deploy-hook`, and the hook's
+  `LEGO_CERT_*` environment variables became `LEGO_HOOK_CERT_*`. Renewal timing
+  is now driven by ARI when the CA offers it, with `--renew-days` as the floor
+- `postgres-cert` runs `lego migrate` before issuing, converting an existing
+  `/var/lib/lego` to the v5 layout. It is skipped on a host that has never
+  issued, and is a no-op once done
+- IP certificates are now ordered through lego directly instead of a hand-built
+  CSR. v4 put the target in the certificate's common name, which Let's Encrypt
+  rejects for an IP, so the image generated its own empty-subject CSR and passed
+  `--csr`. v5 leaves the common name empty by default and turns an IP in
+  `--domains` into an ACME `ip` identifier, producing the same request. The
+  deploy hook drops the key-path fallback that only the `--csr` path needed.
+  A host holding an IP cert issued the old way keeps it until its next renewal;
+  the leftover `/var/lib/lego/csr` is unused and can be deleted
+- Rebuild on `postgres-base` v0.4.0 (kheeper CLI v0.21.0, Grafana 13)
+
+### Notes
+
+- Rolling a host back to v0.2.2 after it has booted this image will leave lego
+  v4 unable to read the migrated `/var/lib/lego`. Certificate issuance and
+  renewal would need `/var/lib/lego` cleared to recover
+
 ## v0.2.2
 
 ### Changes

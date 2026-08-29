@@ -69,19 +69,19 @@ kheeper hosts list --org $ORG
 While the host is starting, configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/postgres:v0.2.2
+kheeper releases start config.json --image us.kheeper.com/public/postgres:v0.3.0
 ```
 
 That writes a default `./config.json`. Set `database.name` and `database.users` (each with a `name` and `password`) for the app accounts that should be able to connect, and if you have a domain, set `domain_name`; otherwise leave it empty and the image issues an IP certificate. Then create and activate the release:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/postgres:v0.2.2 \
+    --image us.kheeper.com/public/postgres:v0.3.0 \
     --config-file config.json \
     --activate
 ```
 
-`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/postgres:v0.2.2` is the image it's built from.
+`$ORG/$HOST:v1` is your release tag; `us.kheeper.com/public/postgres:v0.3.0` is the image it's built from.
 
 ## Alternative platforms
 

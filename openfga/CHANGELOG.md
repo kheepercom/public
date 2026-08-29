@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.3.0
+
+### Changes
+
+- Bump OpenFGA to v1.19.0
+- Rebuild on `postgres-base` v0.4.0 (kheeper CLI v0.21.0, Grafana 13)
+
 ## v0.2.3
 
 ### Changes

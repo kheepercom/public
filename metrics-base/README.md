@@ -15,7 +15,7 @@ Inherits `22/tcp` from [`base`](../base). No additional ports are opened: vmsing
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/metrics-base:v0.2.1
+FROM us.kheeper.com/public/metrics-base:v0.3.0
 
 # drop a scrape config in /etc/victoria-metrics/scrape.d/<service>.json
 # and a dashboard JSON in /var/lib/grafana/dashboards/ to extend the stack

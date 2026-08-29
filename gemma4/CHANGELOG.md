@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Rebuild on `llm-base` v0.4.0 (vLLM v0.28.0, Open WebUI v0.11.1, Grafana 13)
+
 ## v0.3.3
 
 ### Changes

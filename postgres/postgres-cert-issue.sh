@@ -7,12 +7,24 @@ EMAIL=noreply@kheeper.com
 
 mkdir -p "$LEGO_PATH"
 
+# lego v5 changed the on-disk layout and refuses to read a v4 one. `migrate`
+# rewrites it in place, skips anything already migrated, and errors out if
+# there is no certificates dir at all — so only run it on a host that has
+# issued before. It prompts, hence the piped Y, and writes a suggested config
+# file into the cwd, hence the subshell cd.
+if [ -d "$LEGO_PATH/certificates" ]; then
+	(cd "$LEGO_PATH" && echo Y | /usr/local/bin/lego migrate --path "$LEGO_PATH")
+fi
+
 if [ -n "${DOMAIN_NAME:-}" ]; then
 	target="$DOMAIN_NAME"
 	san_entry="DNS:${target}"
+	profile_args=()
 else
 	target=$(curl -fsS --retry 3 https://ifconfig.co)
 	san_entry="IP Address:${target}"
+	# Let's Encrypt only issues IP certs under its short-lived (6-day) profile.
+	profile_args=(--profile shortlived)
 fi
 
 # If the deployed cert already covers the desired target, skip re-issuance.
@@ -26,31 +38,21 @@ if [ -f "$PG_DATA/server.crt" ] && \
 	exit 0
 fi
 
-if [ -n "${DOMAIN_NAME:-}" ]; then
-	target_args=(--domains "$target")
-	profile_args=()
-else
-	# Let's Encrypt rejects IPs in the CSR Common Name, so build a CSR
-	# with an empty subject and the IP only in subjectAltName.
-	install -d -m 700 "$LEGO_PATH/csr"
-	key="$LEGO_PATH/csr/${target}.key"
-	csr="$LEGO_PATH/csr/${target}.csr"
-	openssl req -new -newkey rsa:2048 -nodes \
-		-keyout "$key" -out "$csr" \
-		-subj "/" \
-		-addext "subjectAltName=IP:${target}"
-	target_args=(--csr "$csr")
-	profile_args=(--profile shortlived)
-fi
-
 echo "$target" > "$LEGO_PATH/issued-target"
 
-exec /usr/local/bin/lego \
+# An IP in --domains becomes an ACME `ip` identifier, and v5 leaves the common
+# name empty by default, so lego builds the empty-subject/IP-SAN CSR itself.
+#
+# `run` obtains or renews as needed. We only get here when the deployed cert
+# does not cover the target, so force it past the not-due-yet check, and skip
+# the renewal jitter — this unit runs Before=postgresql.service at boot.
+exec /usr/local/bin/lego run \
 	--accept-tos \
 	--email "$EMAIL" \
 	--path "$LEGO_PATH" \
 	--http \
-	"${target_args[@]}" \
-	run \
+	--domains "$target" \
 	"${profile_args[@]}" \
-	--run-hook /usr/local/sbin/postgres-cert-deploy
+	--renew-force \
+	--no-random-sleep \
+	--deploy-hook /usr/local/sbin/postgres-cert-deploy

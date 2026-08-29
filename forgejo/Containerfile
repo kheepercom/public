@@ -1,7 +1,7 @@
-FROM us.kheeper.com/public/postgres-base:v0.3.2
+FROM us.kheeper.com/public/postgres-base:v0.4.0
 
-ARG VERSION=15.0.5
-ARG RUNNER_VERSION=12.13.0
+ARG VERSION=16.0.3
+ARG RUNNER_VERSION=13.0.0
 
 # nodejs runs the JS-based actions (e.g. actions/checkout) under the host executor.
 RUN dnf install -y \
