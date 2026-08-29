@@ -19,7 +19,9 @@ RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
 	&& firewall-offline-cmd --zone=public --add-port=2222/tcp
 
 # Move admin sshd to 2222 so Forgejo's git SSH server can bind the default port 22
+COPY sshd-socket-port.conf /usr/lib/systemd/system/sshd.socket.d/20-forgejo-port.conf
 COPY sshd-port.conf /etc/ssh/sshd_config.d/20-forgejo-sshd-port.conf
+RUN systemctl disable sshd.service && systemctl enable sshd.socket
 
 RUN systemctl enable caddy
 COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl

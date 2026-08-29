@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.0
+
+### Fixes
+
+- Admin sshd on port 2222 is now socket-activated (`sshd.socket`) instead of a
+  long-running `sshd.service`. SELinux labels only tcp/22 as `ssh_port_t` and
+  `sshd_t` may not `name_bind` any other port, so under enforcing `sshd -D`
+  exited 255 with "Cannot bind any address" and crash-looped on `Restart=on-failure`
+  — leaving nothing on 2222 and, because the unit stays in `activating (auto-restart)`,
+  showing nothing in `systemctl --failed`. systemd binds the socket as `init_t`,
+  which may bind any `port_type`, so admin SSH now works with SELinux enforcing
+
 ## v0.6.0
 
 ### Changes
