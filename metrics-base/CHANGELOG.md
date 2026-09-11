@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Bump VictoriaMetrics to v1.151.0 (from v1.150.0)
+- Bump Grafana to 13.2.1 (from 13.2.0)
+- Rebuild on `base` v0.2.3
+
+### Notes
+
+- v1.151.0 fixes HTTP Basic Auth being skippable on paths ending in `/config`
+  or `/reload`. This image does not set `-httpAuth.*` and binds vmsingle to
+  127.0.0.1, so it was never exposed
+
 ## v0.3.0
 
 ### Changes

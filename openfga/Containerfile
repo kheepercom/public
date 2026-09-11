@@ -1,6 +1,6 @@
-FROM us.kheeper.com/public/postgres-base:v0.4.0
+FROM us.kheeper.com/public/postgres-base:v0.5.0
 
-ARG VERSION=1.19.0
+ARG VERSION=1.20.0
 
 RUN dnf install -y \
 	caddy \

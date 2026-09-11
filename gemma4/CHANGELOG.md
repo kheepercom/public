@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.0
+
+### Changes
+
+- Rebuild on `llm-base` v0.5.0 (Open WebUI v0.11.3, kernel 7.2.4)
+
 ## v0.4.0
 
 ### Changes

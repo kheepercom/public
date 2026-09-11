@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.5.0
+
+### Changes
+
+- Bump Open WebUI to v0.11.3 (from v0.11.1), in both `llm-webui.image` and the
+  quadlet `Image=`. Reply-under-message chat branches now survive a reload, and
+  a failed DB migration aborts startup instead of booting half-upgraded
+- Re-pin `KERNEL_VERSION` to 7.2.4-200.fc44.x86_64, the kernel shipped by
+  `base` v0.2.3. The open NVIDIA kmod is compiled against this version at
+  build time; 7.1.10 is also no longer in the Fedora repos, so the old pin
+  would fail to resolve `kernel-devel`
+- Rebuild on `metrics-base` v0.4.0 (VictoriaMetrics v1.151.0, Grafana 13.2.1)
+
+### Notes
+
+- vLLM stays at v0.28.0. v0.29.0 is out but a minor bump needs a GPU host to
+  verify before shipping
+- The NVIDIA driver stays pinned at 595.58.03: RPM Fusion has 610.57.04 but
+  still ships no `akmod-nvidia-open` for it
+
 ## v0.4.0
 
 ### Changes

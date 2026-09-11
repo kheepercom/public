@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.3
+
+### Changes
+
+- Update base image to the latest `fedora-bootc:44` digest (kernel
+  7.2.4-200.fc44.x86_64, was 7.1.10-200.fc44.x86_64)
+
 ## v0.2.2
 
 ### Changes

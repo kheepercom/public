@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.8.0
+
+### Changes
+
+- Bump Forgejo to v16.0.4 (from v16.0.3). Security release: a critical RCE via
+  template-repository variable expansion (a malicious template could plant a
+  `.git` directory that the new repo's `git init` adopted), an API
+  authorization bypass where a repo-scoped token could edit branches through
+  the "allow maintainer edit" path, and draft-release attachments being
+  readable by anyone with read access
+- Bump the act runner to v13.1.0 (from v13.0.0). No config changes; the
+  protocol churn is confined to the experimental gRPC plugin backend
+- Rebuild on `postgres-base` v0.5.0
+
 ## v0.7.0
 
 ### Fixes

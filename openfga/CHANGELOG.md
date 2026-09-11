@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Bump OpenFGA to v1.20.0 (from v1.19.0). Fixes a ListUsers deadlock that
+  returned partial results past `OPENFGA_RESOLVE_NODE_BREADTH_LIMIT`, and
+  rebuilds on go1.26.8 for CVE-2026-39821
+- Rebuild on `postgres-base` v0.5.0 (kheeper CLI v0.22.0, Grafana 13.2.1)
+
 ## v0.3.0
 
 ### Changes

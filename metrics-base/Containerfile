@@ -1,8 +1,8 @@
-FROM us.kheeper.com/public/base:v0.2.2
+FROM us.kheeper.com/public/base:v0.2.3
 
-ARG VMSINGLE_VERSION=v1.150.0
+ARG VMSINGLE_VERSION=v1.151.0
 ARG NODE_EXPORTER_VERSION=1.12.1
-ARG GRAFANA_VERSION=13.2.0
+ARG GRAFANA_VERSION=13.2.1
 
 RUN curl -LO https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${VMSINGLE_VERSION}/victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz \
 	&& tar xzf victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz -C /usr/local/bin --transform 's/victoria-metrics-prod/victoria-metrics/' \

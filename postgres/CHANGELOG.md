@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Bump lego to v5.4.1 (from v5.4.0). Two library-level fixes; no CLI flag
+  changes, so `postgres-cert` is unchanged
+- Rebuild on `postgres-base` v0.5.0 (kheeper CLI v0.22.0, Grafana 13.2.1)
+
 ## v0.3.0
 
 ### Changes
