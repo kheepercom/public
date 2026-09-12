@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.9.1
+
+### Fixes
+
+- Admin sshd on 2222 actually comes up now. tcp/2222 is labelled `ssh_port_t`
+  (`semanage port -a`), which is what was missing all along. The v0.7.0 note that
+  socket activation "sidesteps" SELinux because systemd binds as `init_t` was
+  wrong: systemd derives a socket unit's label from the ExecStart binary of the
+  service it activates, and `/usr/sbin/sshd` is `sshd_exec_t`, so the listening
+  socket is bound as `sshd_t` — which may only `name_bind ssh_port_t`. The bind
+  was denied and `sshd.socket` failed with `Result: resources`, which looks
+  identical from outside to the crash-looping `sshd -D` that v0.7.0 replaced.
+  Adds `policycoreutils-python-utils` for `semanage`
+
 ## v0.9.0
 
 ### Fixes

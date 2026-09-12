@@ -8,6 +8,7 @@ RUN dnf install -y \
 	caddy \
 	git \
 	nodejs \
+	policycoreutils-python-utils \
 	&& dnf clean all \
 	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/lib/caddy /var/log/* /tmp/* \
 	&& rm -rf /run/dnf /run/lock /run/log
@@ -21,11 +22,14 @@ RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
 # Move admin sshd to 2222 so Forgejo's git SSH server can bind the default port 22
 COPY sshd-socket-port.conf /usr/lib/systemd/system/sshd.socket.d/20-forgejo-port.conf
 COPY sshd-port.conf /etc/ssh/sshd_config.d/20-forgejo-sshd-port.conf
-# Both decisions live in /usr, not /etc: a host first boots the autoregister
-# image, whose fedora-bootc base enables sshd.service, and the /etc merge on the
-# switch here can keep that stale symlink. sshd.socket has Conflicts=sshd.service,
-# so a surviving sshd.service wins and leaves nothing on 2222. A /dev/null symlink
-# in the unit search path masks the unit whatever /etc holds.
+# systemd labels a socket unit's listening socket from the ExecStart binary of the
+# service it activates -- /usr/sbin/sshd is sshd_exec_t, so the socket is bound as
+# sshd_t, not init_t. sshd_t may only name_bind ssh_port_t, so without this the bind
+# fails and sshd.socket dies with "Result: resources". Socket activation does not
+# sidestep the port label.
+RUN semanage port -a -t ssh_port_t -p tcp 2222
+# Mask and enablement live in /usr, not /etc, so neither depends on what bootc's
+# /etc merge preserves across the switch from the autoregister image.
 RUN systemctl disable sshd.service \
 	&& ln -sf /dev/null /usr/lib/systemd/system/sshd.service \
 	&& mkdir -p /usr/lib/systemd/system/sockets.target.wants \
