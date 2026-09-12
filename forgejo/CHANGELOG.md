@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.9.0
+
+### Fixes
+
+- Admin sshd on 2222 comes up again. `sshd.socket` carries
+  `Conflicts=sshd.service`, and a host first boots the autoregister image, whose
+  `fedora-bootc` base enables `sshd.service`. The `/etc` merge on the `bootc
+  switch` to this image can keep that stale
+  `multi-user.target.wants/sshd.service` symlink, so both units end up enabled,
+  the conflict stops `sshd.socket`, and the standalone `sshd -D` that replaces it
+  can't bind 2222 under SELinux (only tcp/22 is `ssh_port_t`) — leaving nothing on
+  2222 and, because it sits in `activating (auto-restart)`, nothing in `systemctl
+  --failed` either. Both the mask and the socket's enablement now live in `/usr`
+  (a `/dev/null` unit symlink masks whatever `/etc` holds), so the outcome no
+  longer depends on what the merge preserves
+
 ## v0.8.0
 
 ### Changes

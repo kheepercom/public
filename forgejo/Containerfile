@@ -21,7 +21,15 @@ RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
 # Move admin sshd to 2222 so Forgejo's git SSH server can bind the default port 22
 COPY sshd-socket-port.conf /usr/lib/systemd/system/sshd.socket.d/20-forgejo-port.conf
 COPY sshd-port.conf /etc/ssh/sshd_config.d/20-forgejo-sshd-port.conf
-RUN systemctl disable sshd.service && systemctl enable sshd.socket
+# Both decisions live in /usr, not /etc: a host first boots the autoregister
+# image, whose fedora-bootc base enables sshd.service, and the /etc merge on the
+# switch here can keep that stale symlink. sshd.socket has Conflicts=sshd.service,
+# so a surviving sshd.service wins and leaves nothing on 2222. A /dev/null symlink
+# in the unit search path masks the unit whatever /etc holds.
+RUN systemctl disable sshd.service \
+	&& ln -sf /dev/null /usr/lib/systemd/system/sshd.service \
+	&& mkdir -p /usr/lib/systemd/system/sockets.target.wants \
+	&& ln -sf ../sshd.socket /usr/lib/systemd/system/sockets.target.wants/sshd.socket
 
 RUN systemctl enable caddy
 COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
