@@ -15,7 +15,7 @@ Inherits `22/tcp` from [`base`](../base). Postgres binds to `127.0.0.1:5432` and
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/postgres-base:v0.5.0
+FROM us.kheeper.com/public/postgres-base:v0.5.1
 
 # install your app, configure it to talk to localhost:5432 (or the unix
 # socket at /var/run/postgresql), etc.
@@ -39,12 +39,15 @@ Drop snippets into `/etc/kheeper/postgresql-conf.d/` at build time. The init scr
 - `kheeper-db-init.service` — creates a configured application database and its local peer-auth users (see [Application database](#application-database))
 - `postgresql-contrib` extensions and the `en_US.utf8` locale (via `glibc-langpack-en`) available in the image
 - `kheeper` CLI bundled at `/usr/local/bin` needed for the object proxy
+- `kheeper-walg.cil` — SELinux policy module letting the Postgres archiver reach the object proxy (loaded at a full boot, not a soft-reboot)
 
 ## Backups
 
 WAL segments archive on every Postgres flush via `archive_command = 'wal-g wal-push %p'`. Base backups run daily on `walg-base-backup.timer`; `walg-retention.timer` prunes anything older than the most recent 7 full backups.
 
 All wal-g traffic is routed through `kheeper-object-proxy` running on localhost. No object-store credentials are stored on the host.
+
+Postgres is confined as `postgresql_t` and the archiver's wal-g inherits that domain, so reaching the proxy needs the `kheeper-walg.cil` policy module this image installs. The kernel only picks up a policy change on a full boot — after a soft-reboot release, check `journalctl -g 'avc:.*denied.*wal-g'` before assuming archiving is healthy.
 
 To inspect backups from the host:
 

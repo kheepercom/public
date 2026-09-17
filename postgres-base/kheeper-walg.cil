@@ -1,0 +1,6 @@
+; wal-g, forked by the postgres archiver, runs as postgresql_t and must reach
+; `kheeper object-proxy` on 127.0.0.1:5000 (labelled commplex_main_port_t).
+(allow postgresql_t commplex_main_port_t (tcp_socket (name_connect)))
+
+; timeout(1) in archive_command puts itself in its own process group.
+(allow postgresql_t self (process (setpgid)))

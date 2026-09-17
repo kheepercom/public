@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.1
+
+### Fixes
+
+- Rebuild on `postgres-base` v0.5.1: WAL archiving no longer wedges under
+  SELinux. Requires a full boot, not a soft-reboot, to take effect
+
 ## v0.4.0
 
 ### Changes

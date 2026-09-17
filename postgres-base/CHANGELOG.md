@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.5.1
+
+### Fixes
+
+- WAL archiving no longer wedges under SELinux. `archive_command` forks wal-g
+  into `postgresql_t`, which is not allowed to connect to tcp/5000
+  (`commplex_main_port_t`) where `kheeper-object-proxy` listens. Every
+  `wal-g wal-push` failed `connect()` with `EACCES` inside the LSM hook; the
+  AWS SDK treats a dial error as retryable and backed off until `timeout 30`
+  killed it, so the archiver saw exit 124 forever. No socket was ever opened,
+  so the proxy logged nothing and there were no TCP errors to find — the same
+  command from a shell succeeded because a shell is unconfined. Postgres will
+  not recycle WAL past an unarchived segment, so `pg_wal` grows unbounded until
+  the disk fills. `kheeper-walg.cil` now allows that connect, plus the
+  `setpgid` `timeout(1)` needs to kill the process group it starts.
+- **A host must be fully rebooted for this to take effect.** The kernel loads
+  the policy from `/etc/selinux` at boot, and a `bootc` soft-reboot logs
+  `Failed to load new SELinux policy. Continuing with old policy.` and keeps
+  the one it booted with.
+
 ## v0.5.0
 
 ### Changes

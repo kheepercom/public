@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/postgres-base:v0.5.0
+FROM us.kheeper.com/public/postgres-base:v0.5.1
 
 ARG LEGO_VERSION=v5.4.1
 

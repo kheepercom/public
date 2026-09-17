@@ -44,6 +44,9 @@ COPY kheeper-db-init.service /usr/lib/systemd/system/kheeper-db-init.service
 # object store, authenticating to objects.kheeper.com with the host JWT.
 COPY kheeper-object-proxy.service /usr/lib/systemd/system/kheeper-object-proxy.service
 COPY kheeper-walg-env.service /usr/lib/systemd/system/kheeper-walg-env.service
+# The kernel loads this at a full boot only; a soft-reboot keeps the running policy.
+COPY kheeper-walg.cil /usr/share/selinux/packages/kheeper-walg.cil
+RUN semodule -N -i /usr/share/selinux/packages/kheeper-walg.cil
 COPY walg-base-backup.service /usr/lib/systemd/system/walg-base-backup.service
 COPY walg-base-backup.timer /usr/lib/systemd/system/walg-base-backup.timer
 COPY walg-retention.service /usr/lib/systemd/system/walg-retention.service

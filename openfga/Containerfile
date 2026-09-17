@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/postgres-base:v0.5.0
+FROM us.kheeper.com/public/postgres-base:v0.5.1
 
 ARG VERSION=1.20.0
 
