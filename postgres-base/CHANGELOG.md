@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.5.2
+
+### Fixes
+
+- WAL archiving works on newly registered hosts. `kheeper-walg-env` and
+  `kheeper-object-proxy` now read host identity from `/var/lib/kheeper`,
+  where autoregister writes it, instead of `/etc/kheeper`. On a host with no
+  `/etc/kheeper/default/identity.json` both units were skipped by their
+  `ConditionPathExists`, `/etc/kheeper/walg.env` was never rendered, and
+  every `wal-push` failed, so the host had no Postgres backups
+
+### Changes
+
+- Rebuild on `metrics-base` v0.4.1
+
 ## v0.5.1
 
 ### Fixes

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.2
+
+### Fixes
+
+- Rebuild on `postgres-base` v0.5.2: WAL archiving works on newly registered
+  hosts
+
 ## v0.4.1
 
 ### Fixes

@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/base:v0.2.3
+FROM us.kheeper.com/public/base:v0.2.4
 
 ARG VMSINGLE_VERSION=v1.151.0
 ARG NODE_EXPORTER_VERSION=1.12.1
