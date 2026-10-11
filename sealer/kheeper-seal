@@ -1,0 +1,63 @@
+#!/bin/bash
+# kheeper-seal sign-boot
+#   Signs systemd-boot, written to /out/systemd-bootx64.efi.signed.
+# kheeper-seal uki <image>
+#   Builds a UKI for <image>, which is in the caller's storage and mounted at
+#   /target. Writes /out/<kver>.efi and /out/digest. The UKI is signed when a
+#   key is given; an unsigned one is for images that only need to boot the
+#   same way as sealed ones, such as autoregister.
+#
+# The key and certificate are /run/secrets/secureboot_key and
+# /run/secrets/secureboot_cert.
+set -euo pipefail
+
+key=/run/secrets/secureboot_key
+cert=/run/secrets/secureboot_cert
+
+case "${1:-}" in
+sign-boot)
+	/usr/lib/systemd/systemd-sbsign sign --private-key "$key" --certificate "$cert" \
+		--output /out/systemd-bootx64.efi.signed /usr/lib/systemd/boot/efi/systemd-bootx64.efi
+	;;
+uki)
+	# The digest bootc computes from the image's layers, which is what the
+	# host computes when it pulls the release. Reading the mounted tree
+	# instead can disagree on directory mtimes.
+	digest=$(bootc container compute-composefs-digest-from-storage "$2")
+	kvers=(/target/usr/lib/modules/*/vmlinuz)
+	if [ "${#kvers[@]}" -ne 1 ]; then
+		echo "expected one kernel in the image, found ${#kvers[@]}" >&2
+		exit 1
+	fi
+	kdir=$(dirname "${kvers[0]}")
+	kver=$(basename "$kdir")
+	kargs=$(python3 -c '
+import glob, platform, tomllib
+out = []
+for p in sorted(glob.glob("/target/usr/lib/bootc/kargs.d/*.toml")):
+    with open(p, "rb") as f:
+        d = tomllib.load(f)
+    arches = d.get("match-architectures")
+    if arches is None or platform.machine() in arches:
+        out += d.get("kargs", [])
+print(" ".join(out))
+')
+	sign=()
+	if [ -f "$key" ]; then
+		sign=(--signtool systemd-sbsign --secureboot-private-key "$key" --secureboot-certificate "$cert" --no-sign-kernel)
+	fi
+	ukify build \
+		--linux "$kdir/vmlinuz" \
+		--initrd "$kdir/initramfs.img" \
+		--uname "$kver" \
+		--os-release @/target/usr/lib/os-release \
+		--cmdline "$kargs composefs=$digest" \
+		"${sign[@]}" \
+		--output "/out/$kver.efi"
+	echo "$digest" > /out/digest
+	;;
+*)
+	echo "usage: kheeper-seal sign-boot | uki <image>" >&2
+	exit 2
+	;;
+esac

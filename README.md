@@ -14,6 +14,7 @@ Each image is a single immutable OS that boots, provisions TLS, opens the right 
 | [Postgres](postgres) | PostgreSQL with WAL-G base backups and WAL archiving, `postgres_exporter` metrics in Grafana, and a Let's Encrypt cert on `:5432`. |
 
 Or use these as inspiration to [make your own bootable images](https://kheeper.com/docs/getting-started/build-and-push).
+Build on [base](base), or on [composefs-base](composefs-base) for [sealed images](https://kheeper.com/docs/guides/sealed-images) that boot only what your org signed.
 
 ## Prerequisites
 

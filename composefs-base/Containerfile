@@ -1,0 +1,19 @@
+# base, rebuilt for bootc's composefs backend so it can be sealed: a signed UKI
+# whose cmdline pins the composefs digest of everything outside /boot.
+FROM us.kheeper.com/public/base:v0.2.5
+
+# systemd-boot replaces bootupd, grub and shim. Sealed hosts boot our signed
+# systemd-boot directly, not through Microsoft's shim.
+RUN rpm -e bootupd shim-x64 \
+	&& dnf install -y systemd-boot-unsigned \
+	&& dnf clean all
+
+# fs-verity, which composefs requires, is not available on xfs.
+COPY install-ext4.toml /usr/lib/bootc/install/00-ext4.toml
+COPY kargs.toml /usr/lib/bootc/kargs.d/10-kheeper.toml
+
+# The ostree repo under /sysroot is 2G that a composefs host never reads, and
+# every file outside /boot is part of a sealed digest.
+RUN rm -rf /sysroot/ostree && mkdir /sysroot/ostree
+
+LABEL kheeper.composefs=1
