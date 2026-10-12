@@ -9,6 +9,7 @@ Each image is a single immutable OS that boots, provisions TLS, opens the right 
 | Image | What it is |
 | ----- | ---------- |
 | [Forgejo](forgejo) | Self-hosted Git forge. Backed by a local Postgres, TLS via Caddy, git-over-SSH. |
+| [Keycloak](keycloak) | Identity provider: OIDC, SAML, LDAP federation, MFA. Local Postgres for state, TLS via Caddy. [Sealed](https://kheeper.com/docs/guides/sealed-images) image for composefs hosts. |
 | [OpenFGA](openfga) | Fine-grained authorization service with a friendly modeling language. Local Postgres for state, TLS via Caddy, Grafana dashboard, bearer-token auth. |
 | [Pi-hole](pihole) | Network-wide DNS sinkhole and ad-blocker. Admin UI served over TLS; DNS locked down by source CIDR. |
 | [Postgres](postgres) | PostgreSQL with WAL-G base backups and WAL archiving, `postgres_exporter` metrics in Grafana, and a Let's Encrypt cert on `:5432`. |

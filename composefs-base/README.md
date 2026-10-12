@@ -10,7 +10,7 @@ and the kernel checks every file it reads against that digest.
 Build on it the way you would build on `base`:
 
 ```Containerfile
-FROM us.kheeper.com/public/composefs-base:v0.1.0
+FROM us.kheeper.com/public/composefs-base:v0.1.1
 
 # install your app, add your firewall openings, drop in unit files, etc.
 ```

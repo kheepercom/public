@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.4
+
+### Changes
+
+- Rebuild on `postgres-base` v0.5.4
+
 ## v0.4.3
 
 ### Changes

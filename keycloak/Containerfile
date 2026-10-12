@@ -1,0 +1,60 @@
+FROM us.kheeper.com/public/composefs-base:v0.1.1 AS composefs
+
+FROM us.kheeper.com/public/postgres-base:v0.5.4
+
+ARG VERSION=26.8.0
+
+# The same conversion composefs-base makes to base, so the image can be sealed.
+RUN rpm -e bootupd shim-x64 \
+	&& dnf install -y systemd-boot-unsigned \
+	&& dnf clean all
+COPY --from=composefs /usr/lib/bootc/install/00-ext4.toml /usr/lib/bootc/install/00-ext4.toml
+COPY --from=composefs /usr/lib/bootc/kargs.d/10-kheeper.toml /usr/lib/bootc/kargs.d/10-kheeper.toml
+
+RUN dnf install -y \
+	caddy \
+	java-25-openjdk-headless \
+	&& dnf clean all \
+	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/lib/caddy /var/log/* /tmp/* \
+	&& rm -rf /run/dnf /run/lock /run/log
+
+RUN firewall-offline-cmd --zone=public --add-port=80/tcp \
+	&& firewall-offline-cmd --zone=public --add-port=443/tcp
+
+RUN systemctl enable caddy
+COPY Caddyfile.khtmpl /etc/caddy/Caddyfile.khtmpl
+
+# /opt is /var/opt on bootc, so Keycloak lives in /usr and writes only to
+# /var/lib/keycloak.
+ENV JAVA_HOME=/usr/lib/jvm/java-25-openjdk
+RUN curl -fL https://github.com/keycloak/keycloak/releases/download/${VERSION}/keycloak-${VERSION}.tar.gz \
+	| tar xz -C /usr/lib \
+	&& mv /usr/lib/keycloak-${VERSION} /usr/lib/keycloak \
+	&& /usr/lib/keycloak/bin/kc.sh build --db=postgres --health-enabled=true --metrics-enabled=true --features=user-event-metrics --event-metrics-user-enabled=true \
+	&& rm -rf /usr/lib/keycloak/data \
+	&& ln -s /var/lib/keycloak /usr/lib/keycloak/data \
+	&& rm -rf /tmp/*
+
+# JDBC can't use the unix socket, so Keycloak authenticates over loopback with
+# a password keycloak-init generates.
+COPY 30-listen.conf /etc/kheeper/postgresql-conf.d/30-listen.conf
+COPY starter.d/database.json /etc/kheeper/starter.d/database.json
+
+COPY keycloak.sysusers /usr/lib/sysusers.d/keycloak.conf
+COPY kheeper.conf /usr/lib/tmpfiles.d/kheeper-keycloak.conf
+COPY keycloak.env.khtmpl /etc/kheeper/keycloak.env.khtmpl
+COPY --chmod=0755 keycloak-init.sh /usr/local/sbin/keycloak-init
+COPY keycloak-init.service /usr/lib/systemd/system/keycloak-init.service
+COPY keycloak.service /usr/lib/systemd/system/keycloak.service
+RUN systemctl enable keycloak-init keycloak
+
+COPY keycloak-scrape.json /etc/victoria-metrics/scrape.d/keycloak.json
+COPY grafana-dashboards/keycloak.json /etc/grafana/dashboards/keycloak.json
+
+COPY schema.json /etc/kheeper/schema.d/keycloak.json
+
+# The ostree repo is 2G a composefs host never reads.
+RUN rm -rf /sysroot/ostree && mkdir /sysroot/ostree
+LABEL kheeper.composefs=1
+
+RUN bootc container lint

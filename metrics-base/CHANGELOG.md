@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.3
+
+### Changes
+
+- Rebuild on `base` v0.2.6
+
 ## v0.4.2
 
 ### Changes

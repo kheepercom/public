@@ -1,0 +1,2 @@
+g keycloak 974 -
+u keycloak 974:974 "Keycloak" /var/lib/keycloak /sbin/nologin

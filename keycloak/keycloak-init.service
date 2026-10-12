@@ -1,0 +1,12 @@
+[Unit]
+Description=Set the Keycloak database password
+After=kheeper-db-init.service
+Requires=kheeper-db-init.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/sbin/keycloak-init
+
+[Install]
+WantedBy=multi-user.target

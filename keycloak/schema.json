@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "domain": {
+      "type": "string",
+      "description": "Public domain name resolving to this host. Used by Caddy for automatic TLS and as Keycloak's hostname."
+    },
+    "admin_password": {
+      "type": "string",
+      "description": "Password for the temporary `admin` user in the master realm, created on first boot. Create-only: changing it after first boot does nothing.",
+      "minLength": 12
+    }
+  },
+  "required": ["domain", "admin_password"],
+  "additionalProperties": false
+}

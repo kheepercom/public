@@ -1,6 +1,6 @@
 # base, rebuilt for bootc's composefs backend so it can be sealed: a signed UKI
 # whose cmdline pins the composefs digest of everything outside /boot.
-FROM us.kheeper.com/public/base:v0.2.5
+FROM us.kheeper.com/public/base:v0.2.6
 
 # systemd-boot replaces bootupd, grub and shim. Sealed hosts boot our signed
 # systemd-boot directly, not through Microsoft's shim.

@@ -1,7 +1,7 @@
 # Seals a release: run by `kheeper releases create --seal` on the operator's
 # machine, where the Secure Boot signing key lives. Built from composefs-base
 # so the bootc computing the digest is the one hosts run.
-FROM us.kheeper.com/public/composefs-base:v0.1.0
+FROM us.kheeper.com/public/composefs-base:v0.1.1
 
 RUN dnf install -y systemd-ukify && dnf clean all
 

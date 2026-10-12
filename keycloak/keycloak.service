@@ -1,0 +1,48 @@
+[Unit]
+Description=Keycloak
+After=postgresql.service keycloak-init.service
+Requires=postgresql.service keycloak-init.service
+
+[Service]
+User=keycloak
+Group=keycloak
+
+Environment=JAVA_HOME=/usr/lib/jvm/java-25-openjdk
+Environment=KC_CACHE=local
+Environment=KC_DB_URL=jdbc:postgresql://localhost/keycloak
+Environment=KC_DB_USERNAME=keycloak
+Environment=KC_HTTP_ENABLED=true
+Environment=KC_HTTP_HOST=127.0.0.1
+Environment=KC_HTTP_PORT=8080
+Environment=KC_PROXY_HEADERS=xforwarded
+Environment=KC_HTTP_METRICS_HISTOGRAMS_ENABLED=true
+EnvironmentFile=/etc/kheeper/keycloak.env
+EnvironmentFile=/var/lib/keycloak/db.env
+
+ExecStart=/usr/lib/keycloak/bin/kc.sh start --optimized
+SuccessExitStatus=143
+
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+RestrictNamespaces=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+ReadWritePaths=/var/lib/keycloak
+
+[Install]
+WantedBy=multi-user.target
