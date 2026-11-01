@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.5.0
+
+### Changes
+
+- Bump VictoriaMetrics to v1.153.0 (from v1.151.0). Held off v1.154.x, which
+  can OOM vmsingle on long-range series and label queries until v1.155.0
+- Bump Grafana to 13.2.4 (from 13.2.1). Security releases
+- Rebuild on `base` v0.2.7
+
 ## v0.4.3
 
 ### Changes

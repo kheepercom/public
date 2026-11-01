@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.10.1
+
+### Fixes
+
+- Restore SELinux labels under `/var/lib/caddy` at boot. Files labeled
+  `var_lib_t` instead of `httpd_var_lib_t` kept Caddy from saving renewed
+  certificates, so they silently expired
+
+## v0.10.0
+
+### Changes
+
+- Bump Forgejo to v16.0.6 (from v16.0.4). Security releases: a critical fix
+  for patch application mutating the bare repo config, OpenID association
+  CSRF, and fork PRs dispatching review workflows from the head branch
+- Bump the act runner to v13.2.0 (from v13.1.0). No config changes
+- Rebuild on `postgres-base` v0.6.0
+
 ## v0.9.5
 
 ### Changes

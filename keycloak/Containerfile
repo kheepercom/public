@@ -1,8 +1,8 @@
-FROM us.kheeper.com/public/composefs-base:v0.1.1 AS composefs
+FROM us.kheeper.com/public/composefs-base:v0.1.2 AS composefs
 
-FROM us.kheeper.com/public/postgres-base:v0.5.4
+FROM us.kheeper.com/public/postgres-base:v0.6.0
 
-ARG VERSION=26.8.0
+ARG VERSION=26.8.1
 
 # The same conversion composefs-base makes to base, so the image can be sealed.
 RUN rpm -e bootupd shim-x64 \

@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.6.0
+
+### Changes
+
+- Bump kheeper CLI to v0.25.1 (from v0.22.0). `hosts me` and `object-proxy`
+  are unchanged
+- Rebuild on `metrics-base` v0.5.0 (VictoriaMetrics v1.153.0, Grafana 13.2.4)
+
 ## v0.5.4
 
 ### Changes

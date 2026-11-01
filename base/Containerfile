@@ -1,5 +1,5 @@
 # latest quay.io/fedora/fedora-bootc:44-x86_64
-FROM quay.io/fedora/fedora-bootc@sha256:f0b4c65568fdf50b657a00277039f0d75520251a1e3b770e3e5369849e010b8a
+FROM quay.io/fedora/fedora-bootc@sha256:b54dcd5e53400887d3a9171fe8e67ec038374112ac5d8155878d08dba0253b49
 
 RUN dnf makecache
 

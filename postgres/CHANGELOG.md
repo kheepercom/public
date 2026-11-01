@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.5.0
+
+### Changes
+
+- Bump lego to v5.5.2 (from v5.4.1). No CLI flag changes
+- Rebuild on `postgres-base` v0.6.0
+
 ## v0.4.4
 
 ### Changes

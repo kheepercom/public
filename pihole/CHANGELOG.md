@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.2.1
+
+### Fixes
+
+- Restore SELinux labels under `/var/lib/caddy` at boot. Files labeled
+  `var_lib_t` instead of `httpd_var_lib_t` keep Caddy from saving renewed
+  certificates, so they silently expire
+
+## v0.2.0
+
+### Changes
+
+- Bump Pi-hole to 2026.10.0 (from 2026.07.2). Security releases covering RCE,
+  privilege escalation and DNS denial-of-service advisories.
+  `misc.dnsmasq_lines` and `webserver.advancedOpts` can no longer be set
+  through the API or web UI; this image sets neither
+- Rebuild on `base` v0.2.7
+
 ## v0.1.11
 
 ### Changes

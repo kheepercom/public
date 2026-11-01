@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.1
+
+### Fixes
+
+- Restore SELinux labels under `/var/lib/caddy` at boot. Files labeled
+  `var_lib_t` instead of `httpd_var_lib_t` keep Caddy from saving renewed
+  certificates, so they silently expire
+
+## v0.2.0
+
+### Changes
+
+- Bump Keycloak to 26.8.1 (from 26.8.0). Security release
+- Rebuild on `postgres-base` v0.6.0 and `composefs-base` v0.1.2
+
 ## v0.1.0
 
 ### Features

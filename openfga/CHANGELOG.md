@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.5.1
+
+### Fixes
+
+- Restore SELinux labels under `/var/lib/caddy` at boot. Files labeled
+  `var_lib_t` instead of `httpd_var_lib_t` keep Caddy from saving renewed
+  certificates, so they silently expire
+
+## v0.5.0
+
+### Changes
+
+- Bump OpenFGA to v1.22.0 (from v1.20.0). Updates grpc for GO-2026-6443;
+  the breaking changes are Go API only
+- Rebuild on `postgres-base` v0.6.0
+
 ## v0.4.4
 
 ### Changes

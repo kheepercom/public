@@ -1,6 +1,6 @@
-FROM us.kheeper.com/public/base:v0.2.6
+FROM us.kheeper.com/public/base:v0.2.7
 
-ARG PIHOLE_VERSION=2026.07.2
+ARG PIHOLE_VERSION=2026.10.0
 
 RUN dnf install -y \
 	caddy \

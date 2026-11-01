@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.2
+
+### Changes
+
+- Rebuild on `composefs-base` v0.1.2
+
 ## v0.1.1
 
 ### Changes

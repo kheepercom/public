@@ -1,0 +1,39 @@
+#!/bin/bash
+# Reads bootc-image, bootc-auth and bootc-ssh-key from GCE instance metadata,
+# then switches this host to bootc-image and reboots into it.
+set -euo pipefail
+
+md() {
+	curl -fsS --retry 10 --retry-connrefused -H 'Metadata-Flavor: Google' \
+		"http://169.254.169.254/computeMetadata/v1/instance/attributes/$1" 2>/dev/null || true
+}
+
+image=$(md bootc-image)
+if [ -z "$image" ]; then
+	echo "bootc-quickstart: no bootc-image metadata; set it and reboot"
+	exit 0
+fi
+
+auth=$(md bootc-auth)
+if [ -n "$auth" ]; then
+	install -d -m 0700 /etc/ostree
+	printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${image%%/*}" "$(printf %s "$auth" | base64 -w0)" >/etc/ostree/auth.json
+	chmod 0600 /etc/ostree/auth.json
+fi
+
+key=$(md bootc-ssh-key)
+if [ -n "$key" ]; then
+	install -d -m 0700 /root/.ssh
+	printf '%s\n' "$key" >/root/.ssh/authorized_keys
+	chmod 0600 /root/.ssh/authorized_keys
+	restorecon -R /root/.ssh
+fi
+
+# The disk image's root partition is small. Grow it to the disk so the new
+# image fits.
+part=$(findmnt -no SOURCE /sysroot | sed 's/\[.*//')
+growpart "/dev/$(lsblk -no pkname "$part" | head -1)" "$(cat "/sys/class/block/$(basename "$part")/partition")" || true
+xfs_growfs /var
+
+echo "bootc-quickstart: switching to $image"
+bootc switch --apply "$image"

@@ -8,6 +8,7 @@ Each image is a single immutable OS that boots, provisions TLS, opens the right 
 
 | Image | What it is |
 | ----- | ---------- |
+| [bootc quickstart](bootc-quickstart) | Boot any bootc image from any registry on Google Cloud or bare metal (iPXE). No Kheeper account needed. |
 | [Forgejo](forgejo) | Self-hosted Git forge. Backed by a local Postgres, TLS via Caddy, git-over-SSH. |
 | [Keycloak](keycloak) | Identity provider: OIDC, SAML, LDAP federation, MFA. Local Postgres for state, TLS via Caddy. [Sealed](https://kheeper.com/docs/guides/sealed-images) image for composefs hosts. |
 | [OpenFGA](openfga) | Fine-grained authorization service with a friendly modeling language. Local Postgres for state, TLS via Caddy, Grafana dashboard, bearer-token auth. |
