@@ -1,5 +1,5 @@
 #!/bin/bash
-# Reads bootc-image, bootc-auth and bootc-ssh-key from GCE instance metadata,
+# Reads bootc-image and bootc-auth from GCE instance metadata,
 # then switches this host to bootc-image and reboots into it.
 set -euo pipefail
 
@@ -19,14 +19,6 @@ if [ -n "$auth" ]; then
 	install -d -m 0700 /etc/ostree
 	printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${image%%/*}" "$(printf %s "$auth" | base64 -w0)" >/etc/ostree/auth.json
 	chmod 0600 /etc/ostree/auth.json
-fi
-
-key=$(md bootc-ssh-key)
-if [ -n "$key" ]; then
-	install -d -m 0700 /root/.ssh
-	printf '%s\n' "$key" >/root/.ssh/authorized_keys
-	chmod 0600 /root/.ssh/authorized_keys
-	restorecon -R /root/.ssh
 fi
 
 # The disk image's root partition is small. Grow it to the disk so the new

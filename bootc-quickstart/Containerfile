@@ -1,8 +1,0 @@
-# latest quay.io/fedora/fedora-bootc:45-x86_64
-FROM quay.io/fedora/fedora-bootc@sha256:1b95805de4fffac8f03a4deb0416411cdcff355d0e16012304227cbbe758934c
-
-RUN dnf install -y cloud-utils-growpart && dnf clean all
-
-COPY --chmod=0755 bootc-quickstart /usr/local/bin/bootc-quickstart
-COPY bootc-quickstart.service /usr/lib/systemd/system/bootc-quickstart.service
-RUN systemctl enable bootc-quickstart.service

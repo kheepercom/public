@@ -24,14 +24,13 @@ gcloud compute instances create my-vm \
 | --------------- | -------- | ----- |
 | `bootc-image`   | yes      | Fully qualified image ref, e.g. `ghcr.io/you/app:latest` |
 | `bootc-auth`    | no       | `user:token` for a private registry. Written to `/etc/ostree/auth.json` for the image's registry. |
-| `bootc-ssh-key` | no       | An SSH public key line authorized for `root` |
 
 Use `--metadata-from-file bootc-auth=auth.txt` if your token contains a comma.
 Progress is on the serial console:
 `gcloud compute instances get-serial-port-output my-vm`.
 
 Your image must work on GCE on its own. The handoff image has no guest agent,
-so give your image a way to log in, whether `bootc-ssh-key`, a baked user, or
+so give your image a way to log in, such as a baked user or SSH key, or
 `cloud-init`.
 
 ## Bare metal (iPXE)
@@ -54,9 +53,9 @@ boot
 | --------------- | -------- | ----- |
 | `bootc.image`   | yes      | Fully qualified image ref |
 | `bootc.auth`    | no       | `printf user:token \| base64 -w0` |
-| `bootc.sshkey`  | no       | `base64 -w0 ~/.ssh/id_ed25519.pub`, authorized for `root` |
 
-The install wipes the first non-removable disk.
+The install wipes the first non-removable disk. As on Google Cloud, your image
+provides its own way to log in.
 
 ## Updates
 
