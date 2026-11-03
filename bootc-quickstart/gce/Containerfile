@@ -3,8 +3,10 @@
 # latest quay.io/fedora/fedora-bootc:45-x86_64
 FROM quay.io/fedora/fedora-bootc@sha256:1b95805de4fffac8f03a4deb0416411cdcff355d0e16012304227cbbe758934c AS builder
 # Minimal leaves little in /etc and /var to carry over into the user's image.
+# bootc-image-builder runs osbuild's stages inside the image, so it needs
+# python3.
 RUN /usr/libexec/bootc-base-imagectl build-rootfs --manifest=minimal \
-	--install systemd-networkd --install cloud-utils-growpart /target-rootfs
+	--install systemd-networkd --install cloud-utils-growpart --install python3 /target-rootfs
 
 FROM scratch
 COPY --from=builder /target-rootfs/ /
