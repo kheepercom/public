@@ -28,4 +28,6 @@ growpart "/dev/$(lsblk -no pkname "$part" | head -1)" "$(cat "/sys/class/block/$
 xfs_growfs /var
 
 echo "bootc-quickstart: switching to $image"
-bootc switch --apply "$image"
+# Started by systemd, bootc runs as install_t, which may write SELinux labels
+# this image's policy has never heard of. Started from here it could not.
+systemd-run --wait --pipe --quiet --collect bootc switch --apply "$image"

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.4.0
+
+### Changes
+
+- Fix switching to images whose SELinux policy has labels Fedora 45's lacks,
+  such as AlmaLinux 10: run `bootc switch` from systemd so it gets `install_t`.
+
 ## v0.3.0
 
 ### Changes
