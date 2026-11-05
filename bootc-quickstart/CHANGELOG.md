@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.3.0
+
+### Changes
+
+- Fix `bootloader-update.service` failing on Google Cloud hosts after the
+  switch: give the handoff image a version, which bootupd requires in the
+  install record.
+- Update the Fedora 45 base.
+
 ## v0.2.0
 
 ### Changes

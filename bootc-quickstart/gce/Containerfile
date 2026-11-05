@@ -1,7 +1,7 @@
 # Built by sauce's build-bootc-quickstart workflow. It lives under gce/ so
 # the public builder, which builds top-level directories, skips it.
 # latest quay.io/fedora/fedora-bootc:45-x86_64
-FROM quay.io/fedora/fedora-bootc@sha256:1b95805de4fffac8f03a4deb0416411cdcff355d0e16012304227cbbe758934c AS builder
+FROM quay.io/fedora/fedora-bootc:45-x86_64
 # Minimal leaves little in /etc and /var to carry over into the user's image.
 # bootc-image-builder runs osbuild's stages inside the image, so it needs
 # python3.
@@ -16,5 +16,7 @@ COPY 80-dhcp.network /usr/lib/systemd/network/80-dhcp.network
 COPY ostree-finalize-staged-path.conf /usr/lib/systemd/system/ostree-finalize-staged.service.d/path.conf
 RUN systemctl enable systemd-networkd systemd-networkd-wait-online systemd-resolved bootc-quickstart
 LABEL containers.bootc=1
+# bootupd in the image switched to refuses an install record with no version.
+LABEL org.opencontainers.image.version=0.3.0
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]

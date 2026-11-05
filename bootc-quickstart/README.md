@@ -57,6 +57,26 @@ boot
 The install wipes the first non-removable disk. As on Google Cloud, your image
 provides its own way to log in.
 
+The kernel command line is capped at 2047 bytes, and iPXE truncates to fit, so
+a long `bootc.auth` is cut off silently. With the arguments above there is room
+for roughly 1,300 bytes of `user:token` before encoding. A Google Artifact
+Registry key or an ECR password does not fit; see below.
+
+## Registry credentials
+
+Whatever you pass is what the installed host keeps pulling updates with, so a
+token that expires leaves it stuck on the first install.
+
+| Registry | User | Token | Notes |
+| -------- | ---- | ----- | ----- |
+| Artifact Registry, GCR | `_json_key_base64` | `base64 -w0 key.json` | Google Cloud only: too long for iPXE. |
+| Artifact Registry, GCR | `oauth2accesstoken` | `gcloud auth print-access-token` | Fits anywhere, expires in an hour. |
+| ECR | `AWS` | `aws ecr get-login-password` | Too long for iPXE, expires in 12 hours. |
+| GHCR, Docker Hub, Quay, GitLab | your user or robot | personal access or robot token | Fit anywhere and need not expire. |
+
+After an install with a short-lived token, put a longer-lived credential in
+`/etc/ostree/auth.json` on the host so `bootc upgrade` keeps working.
+
 ## Updates
 
 Both paths leave a normal bootc host tracking your image, so `bootc upgrade`,
