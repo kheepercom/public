@@ -1,45 +1,20 @@
 #!/bin/bash
-# Reads bootc-image and bootc-auth from GCE instance metadata or the bootc key
-# of AWS #cloud-config user-data, then switches this host to bootc-image and
-# reboots into it.
+# Reads bootc-image and bootc-auth from GCE instance metadata,
+# then switches this host to bootc-image and reboots into it.
 set -euo pipefail
 
-gce() {
+md() {
 	curl -fsS --retry 10 --retry-connrefused -H 'Metadata-Flavor: Google' \
 		"http://169.254.169.254/computeMetadata/v1/instance/attributes/$1" 2>/dev/null || true
 }
 
-# The rest of the user-data is for cloud-init in the user's image, which
-# ignores the bootc key.
-aws() {
-	local token
-	token=$(curl -fsS --retry 10 --retry-connrefused -X PUT \
-		-H 'X-aws-ec2-metadata-token-ttl-seconds: 60' http://169.254.169.254/latest/api/token)
-	curl -fsS -H "X-aws-ec2-metadata-token: ${token}" http://169.254.169.254/latest/user-data 2>/dev/null \
-		| python3 -c '
-import sys, yaml
-try:
-    print(yaml.safe_load(sys.stdin)["bootc"][sys.argv[1]] or "")
-except Exception:
-    pass
-' "$1" || true
-}
-
-if grep -q Google /sys/class/dmi/id/product_name; then
-	md=gce
-	image=$(gce bootc-image)
-	auth=$(gce bootc-auth)
-else
-	md=aws
-	image=$(aws image)
-	auth=$(aws auth)
-fi
-
+image=$(md bootc-image)
 if [ -z "$image" ]; then
-	echo "bootc-quickstart: no image in $md metadata; set it and reboot"
+	echo "bootc-quickstart: no bootc-image metadata; set it and reboot"
 	exit 0
 fi
 
+auth=$(md bootc-auth)
 if [ -n "$auth" ]; then
 	install -d -m 0700 /etc/ostree
 	printf '{"auths":{"%s":{"auth":"%s"}}}\n' "${image%%/*}" "$(printf %s "$auth" | base64 -w0)" >/etc/ostree/auth.json

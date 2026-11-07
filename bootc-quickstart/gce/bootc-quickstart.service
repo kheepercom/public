@@ -1,5 +1,5 @@
 [Unit]
-Description=Switch to the bootc image named in instance metadata or user-data
+Description=Switch to the bootc image named in instance metadata
 Wants=network-online.target
 After=network-online.target
 StartLimitIntervalSec=0

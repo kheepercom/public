@@ -1,12 +1,12 @@
-# Built by sauce's build-bootc-quickstart workflow. It lives under cloud/ so
+# Built by sauce's build-bootc-quickstart workflow. It lives under gce/ so
 # the public builder, which builds top-level directories, skips it.
 # latest quay.io/fedora/fedora-bootc:45-x86_64
 FROM quay.io/fedora/fedora-bootc:45-x86_64 as builder
 # Minimal leaves little in /etc and /var to carry over into the user's image.
 # bootc-image-builder runs osbuild's stages inside the image, so it needs
-# python3. The handoff reads AWS user-data with pyyaml.
+# python3.
 RUN /usr/libexec/bootc-base-imagectl build-rootfs --manifest=minimal \
-	--install systemd-networkd --install cloud-utils-growpart --install python3 --install python3-pyyaml /target-rootfs
+	--install systemd-networkd --install cloud-utils-growpart --install python3 /target-rootfs
 
 FROM scratch
 COPY --from=builder /target-rootfs/ /
@@ -17,6 +17,6 @@ COPY ostree-finalize-staged-path.conf /usr/lib/systemd/system/ostree-finalize-st
 RUN systemctl enable systemd-networkd systemd-networkd-wait-online systemd-resolved bootc-quickstart
 LABEL containers.bootc=1
 # bootupd in the image switched to refuses an install record with no version.
-LABEL org.opencontainers.image.version=0.5.0
+LABEL org.opencontainers.image.version=0.4.0
 STOPSIGNAL SIGRTMIN+3
 CMD ["/sbin/init"]
