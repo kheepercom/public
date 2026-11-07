@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.11.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.7.0 (Fedora 45)
+
 ## v0.10.1
 
 ### Fixes

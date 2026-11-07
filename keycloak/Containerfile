@@ -1,6 +1,6 @@
-FROM us.kheeper.com/public/composefs-base:v0.1.2 AS composefs
+FROM us.kheeper.com/public/composefs-base:v0.2.0 AS composefs
 
-FROM us.kheeper.com/public/postgres-base:v0.6.0
+FROM us.kheeper.com/public/postgres-base:v0.7.0
 
 ARG VERSION=26.8.1
 

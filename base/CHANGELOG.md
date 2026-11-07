@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0
+
+### Changes
+
+- Update base image to Fedora 45 (`fedora-bootc:45`, `45.20261105.0`)
+
 ## v0.2.7
 
 ### Changes

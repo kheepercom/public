@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.0
+
+### Changes
+
+- Rebuild on `base` v0.3.0 (Fedora 45)
+
 ## v0.1.2
 
 ### Changes

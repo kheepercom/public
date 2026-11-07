@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.0
+
+### Changes
+
+- Add AWS: a public AMI that reads your image from `#cloud-config` user-data.
+
 ## v0.4.0
 
 ### Changes

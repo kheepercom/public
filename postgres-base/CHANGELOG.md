@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.0
+
+### Changes
+
+- Rebuild on `metrics-base` v0.6.0 (Fedora 45). PostgreSQL goes from 18.6 to 18.3, the version F45 ships
+
 ## v0.6.0
 
 ### Changes

@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.3.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.7.0 and `composefs-base` v0.2.0 (Fedora 45)
+
 ## v0.2.1
 
 ### Fixes
