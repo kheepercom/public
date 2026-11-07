@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.8.0
+
+### Changes
+
+- Drop the kheeper CLI. The `kheeper-upgrade` poll layer injected into every
+  release already overwrote it, so `object-proxy` and `hosts me` run the
+  poll layer's CLI as before
+- Rebuild on `metrics-base` v0.6.1
+
 ## v0.7.0
 
 ### Changes

@@ -41,7 +41,7 @@ Open `80/tcp` and `443/tcp` to the host on your network.
 Configure your first release:
 
 ```
-kheeper releases start config.json --image us.kheeper.com/public/keycloak:v0.3.0
+kheeper releases start config.json --image us.kheeper.com/public/keycloak:v0.4.0
 ```
 
 That writes a default `./config.json`. Edit it so `domain` matches your DNS
@@ -49,7 +49,7 @@ record and set `admin_password`. Then create a sealed release and activate it:
 
 ```
 kheeper releases create $ORG/$HOST:v1 \
-    --image us.kheeper.com/public/keycloak:v0.3.0 \
+    --image us.kheeper.com/public/keycloak:v0.4.0 \
     --config-file config.json \
     --seal --activate
 ```

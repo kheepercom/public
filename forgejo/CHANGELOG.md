@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.12.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.8.0
+
 ## v0.11.0
 
 ### Changes
