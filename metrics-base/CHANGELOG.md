@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.7.1
+
+### Changes
+
+- Rebuild on `base` v0.4.1 (new `fedora-bootc:45` digest)
+
+## v0.7.0
+
+### Changes
+
+- Rebuild on `base` v0.4.0 (new `fedora-bootc:45` digest)
+
 ## v0.6.1
 
 ### Changes

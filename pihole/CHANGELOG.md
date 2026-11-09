@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.4.1
+
+### Changes
+
+- Rebuild on `base` v0.4.1 (new `fedora-bootc:45` digest)
+
+### Fixes
+
+- Disable Caddy's admin endpoint. Fedora 45's SELinux policy denies
+  `httpd_t` binding port 2019, so Caddy exited at startup after a full boot
+
+## v0.4.0
+
+### Changes
+
+- Rebuild on `base` v0.4.0 (new `fedora-bootc:45` digest)
+
 ## v0.3.1
 
 ### Changes

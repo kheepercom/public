@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.4.1
+
+### Changes
+
+- Update base image to the latest `fedora-bootc:45` digest
+
+## v0.4.0
+
+### Changes
+
+- Update base image to the latest `fedora-bootc:45` digest
+
+### Fixes
+
+- `NetworkManager-wait-online` waits for one connection instead of every
+  NIC (`nm-online -q`, not `-s`). A spare NIC with no cable or no DHCP
+  server kept it from finishing, so it failed on every boot of a multi-NIC
+  host and held `network-online.target` back for 60s.
+
 ## v0.3.1
 
 ### Changes

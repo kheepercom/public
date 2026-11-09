@@ -1,3 +1,8 @@
+{
+	# F45 SELinux denies httpd_t binding the admin port (2019); nothing uses it.
+	admin off
+}
+
 {{ .forgejo.domain }} {
 	reverse_proxy localhost:3500
 }

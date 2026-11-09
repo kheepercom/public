@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.3.1
+
+### Changes
+
+- Rebuild on `composefs-base` v0.3.1
+
+## v0.3.0
+
+### Changes
+
+- Rebuild on `composefs-base` v0.3.0
+
 ## v0.2.1
 
 ### Changes

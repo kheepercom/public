@@ -1,4 +1,4 @@
-FROM us.kheeper.com/public/metrics-base:v0.6.1
+FROM us.kheeper.com/public/metrics-base:v0.7.1
 
 ARG WALG_VERSION=v3.0.9
 ARG POSTGRES_EXPORTER_VERSION=0.20.1

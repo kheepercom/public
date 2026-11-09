@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.5.1
+
+### Changes
+
+- Rebuild on `postgres-base` v0.9.1 and `composefs-base` v0.3.1
+
+### Fixes
+
+- Disable Caddy's admin endpoint. Fedora 45's SELinux policy denies
+  `httpd_t` binding port 2019, so Caddy exited at startup after a full boot
+
+## v0.5.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.9.0 and `composefs-base` v0.3.0
+
 ## v0.4.0
 
 ### Changes
