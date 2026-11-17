@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.2
+
+### Changes
+
+- Rebuild on `postgres-base` v0.9.2 and `composefs-base` v0.3.2
+
 ## v0.5.1
 
 ### Changes

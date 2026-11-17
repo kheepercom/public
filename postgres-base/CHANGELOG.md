@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.9.2
+
+### Changes
+
+- Rebuild on `metrics-base` v0.7.2
+
 ## v0.9.1
 
 ### Changes

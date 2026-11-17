@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.2
+
+### Changes
+
+- Update base image to the latest `fedora-bootc:45` digest
+
 ## v0.4.1
 
 ### Changes
