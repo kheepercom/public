@@ -15,10 +15,10 @@ Inherits `22/tcp` from [`base`](../base). No additional ports are opened: vmsing
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/metrics-base:v0.7.2
+FROM us.kheeper.com/public/metrics-base:v0.9.0
 
 # drop a scrape config in /etc/victoria-metrics/scrape.d/<service>.json
-# and a dashboard JSON in /var/lib/grafana/dashboards/ to extend the stack
+# and a dashboard JSON in /etc/grafana/dashboards/ to extend the stack
 ```
 
 ## observability
@@ -27,4 +27,4 @@ FROM us.kheeper.com/public/metrics-base:v0.7.2
 
 vmsingle stores 30 days of metrics at `/var/lib/victoria-metrics` and re-reads its scrape config every 30 seconds, so child images can extend the dashboard without restarting anything: drop a single `/etc/victoria-metrics/scrape.d/<service>.json` file containing one file_sd target with a `labels.job` key and the new exporter is picked up within a scrape interval. Both observability services run as a dedicated locked-down `vmetrics` system user.
 
-[Grafana](https://grafana.com/) runs on `127.0.0.1:3000` with the VictoriaMetrics datasource and a starter "Node Overview" dashboard provisioned from files baked into the image (`/etc/grafana/provisioning/`, `/var/lib/grafana/dashboards/`). Log in as `admin`/`admin` (Grafana forces a password change on first login). Add more dashboards by dropping JSON files in `metrics-base/grafana-dashboards/` — they auto-load every 30 seconds.
+[Grafana](https://grafana.com/) runs on `127.0.0.1:3000` with the VictoriaMetrics datasource and a starter "Node Overview" dashboard provisioned from files baked into the image (`/etc/grafana/provisioning/`, `/etc/grafana/dashboards/`). Log in as `admin`/`admin` (Grafana forces a password change on first login). Add more dashboards by dropping JSON files in `metrics-base/grafana-dashboards/` — they auto-load every 30 seconds.

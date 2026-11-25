@@ -1,12 +1,11 @@
 # base, rebuilt for bootc's composefs backend so it can be sealed: a signed UKI
 # whose cmdline pins the composefs digest of everything outside /boot.
-FROM us.kheeper.com/public/base:v0.4.2
+FROM us.kheeper.com/public/base:v0.5.1
 
 # systemd-boot replaces bootupd, grub and shim. Sealed hosts boot our signed
 # systemd-boot directly, not through Microsoft's shim.
-RUN rpm -e bootupd shim-x64 \
-	&& dnf install -y systemd-boot-unsigned \
-	&& dnf clean all
+RUN --mount=type=cache,target=/var/cache/libdnf5 rpm -e bootupd shim-x64 \
+	&& dnf install -y systemd-boot-unsigned
 
 # fs-verity, which composefs requires, is not available on xfs.
 COPY install-ext4.toml /usr/lib/bootc/install/00-ext4.toml

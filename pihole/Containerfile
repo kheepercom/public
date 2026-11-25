@@ -1,11 +1,10 @@
-FROM us.kheeper.com/public/base:v0.4.2
+FROM us.kheeper.com/public/base:v0.5.1
 
-ARG PIHOLE_VERSION=2026.10.0
+ARG PIHOLE_VERSION=2026.11.0
 
-RUN dnf install -y \
+RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y \
 	caddy \
-	&& dnf clean all \
-	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/caddy /var/log/* /tmp/* \
+	&& rm -rf /var/cache/ldconfig /var/lib/dnf /var/lib/caddy /var/log/* /tmp/* \
 	&& rm -rf /run/dnf /run/lock /run/log
 
 RUN firewall-offline-cmd --zone=public --add-port=80/tcp \

@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.9.0
+
+### Changes
+
+- Rebuild on `base` v0.5.1 (new `fedora-bootc:45` digest)
+- Grafana 13.3.2 (fixes CVE-2026-107561 and CVE-2026-88960)
+
+## v0.8.0
+
+### Changes
+
+- Rebuild on `base` v0.5.0
+- Share the dnf cache across builds with a cache mount instead of `dnf clean all`
+- VictoriaMetrics v1.156.0, node_exporter 1.13.1, Grafana 13.3.1
+
+### Fixes
+
+- README pointed dashboards at `/var/lib/grafana/dashboards/`; they load from `/etc/grafana/dashboards/`
+
 ## v0.7.2
 
 ### Changes

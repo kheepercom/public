@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.7.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.11.0 (Grafana 13.3.2 security release) and `composefs-base` v0.4.1
+
+## v0.6.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.10.0
+- Share the dnf cache across builds with a cache mount instead of `dnf clean all`
+- Keycloak 26.8.2. Admin REST API tokens now need the `kc-admin-api` scope; see the upstream migration notes
+
 ## v0.5.2
 
 ### Changes

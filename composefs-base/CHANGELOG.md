@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.4.1
+
+### Changes
+
+- Rebuild on `base` v0.5.1 (new `fedora-bootc:45` digest)
+
+## v0.4.0
+
+### Changes
+
+- Rebuild on `base` v0.5.0
+- Share the dnf cache across builds with a cache mount instead of `dnf clean all`
+
 ## v0.3.2
 
 ### Changes

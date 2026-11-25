@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.10.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.11.0 (Grafana 13.3.2 security release)
+
+## v0.9.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.10.0
+- lego v5.7.0
+
 ## v0.8.2
 
 ### Changes

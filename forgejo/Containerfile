@@ -1,16 +1,15 @@
-FROM us.kheeper.com/public/postgres-base:v0.9.2
+FROM us.kheeper.com/public/postgres-base:v0.11.0
 
 ARG VERSION=16.0.6
 ARG RUNNER_VERSION=13.2.0
 
 # nodejs runs the JS-based actions (e.g. actions/checkout) under the host executor.
-RUN dnf install -y \
+RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y \
 	caddy \
 	git \
 	nodejs \
 	policycoreutils-python-utils \
-	&& dnf clean all \
-	&& rm -rf /var/cache/* /var/lib/dnf /var/lib/pgsql /var/lib/caddy /var/log/* /tmp/* \
+	&& rm -rf /var/cache/ldconfig /var/lib/dnf /var/lib/pgsql /var/lib/caddy /var/log/* /tmp/* \
 	&& rm -rf /run/dnf /run/lock /run/log
 
 # 80/443 for Caddy/ACME, 22 for git-over-SSH (Forgejo), 2222 for admin sshd.

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.10.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.11.0 (Grafana 13.3.2 security release)
+
+## v0.9.0
+
+### Changes
+
+- Rebuild on `postgres-base` v0.10.0
+- Share the dnf cache across builds with a cache mount instead of `dnf clean all`
+- OpenFGA 1.23.0
+
 ## v0.8.2
 
 ### Changes

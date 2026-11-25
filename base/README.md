@@ -1,6 +1,6 @@
 # base
 
-`us.kheeper.com/public/base` — the bootc base image that every other public kheeper image is built `FROM`. Built on `quay.io/fedora/fedora-bootc:latest` and adds the baseline that any internet-facing host should have: a refreshed package cache, a hardened SSH login for an unprivileged admin user, a locked-down firewall, and a persistent journal with sane retention.
+`us.kheeper.com/public/base` — the bootc base image that every other public kheeper image is built `FROM`. Built on `quay.io/fedora/fedora-bootc:latest` and adds the baseline that any internet-facing host should have: a hardened SSH login for an unprivileged admin user, a locked-down firewall, and a persistent journal with sane retention.
 
 This image is meant to be layered, not booted directly. Image-specific software and configuration belong in the downstream image. Anything that should be true of *every* kheeper public host (firewall posture, ssh policy, log retention) belongs here.
 
@@ -8,23 +8,27 @@ This image is meant to be layered, not booted directly. Image-specific software 
 
 | Field | Description |
 | ----- | ----------- |
-| `admin_authorized_keys` | Optional. SSH public key(s) to authorize for the `admin` user, one per line. Without this, only kheeper console access remains. |
+| `admin_authorized_keys` | Optional. SSH public key(s) to authorize for the `admin` user, one per line. |
 
 ## Ports
 
-The host firewall opens `22/tcp` for SSH. Downstream images add their own ports on top by dropping a `firewalld` service file or running `firewall-cmd` at build time.
+The host firewall opens `22/tcp` for SSH. Downstream images add their own ports on top by dropping a `firewalld` service file or running `firewall-offline-cmd` at build time.
 
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/base:v0.4.2
+FROM us.kheeper.com/public/base:v0.5.1
 
 # install your app, add your firewall openings, drop in unit files, etc.
 ```
 
 ## dnf
 
-`dnf makecache` runs at build time so downstream images can `dnf install` without each one re-fetching repository metadata.
+No dnf cache ships in the image. Mount a build cache on each `dnf install` so repository metadata is shared across builds without landing in a layer:
+
+```Containerfile
+RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y caddy
+```
 
 ## firewalld
 
@@ -32,7 +36,10 @@ FROM us.kheeper.com/public/base:v0.4.2
 
 ## ssh
 
-SSH login is restricted to a single unprivileged `admin` user (UID 1000) with passwordless sudo via a `/etc/sudoers.d/admin` drop-in. Root SSH login is disabled (`PermitRootLogin no`, `AllowUsers admin`) and the OS root account is locked (`passwd -l root`). `sshd` is configured (`/etc/ssh/sshd_config.d/10-base.conf`) for publickey-only auth with agent/TCP/X11 forwarding disabled and conservative session and auth-retry limits. `PerSourcePenalties` is set explicitly so a single misbehaving source IP gets temporarily blocked by `sshd` itself (30s on auth failure, 10m on repeated abuse) without needing `fail2ban` or a separate `firewalld` ruleset.
+SSH login is restricted to a single unprivileged `admin` user (UID 1000) with passwordless sudo via a `/etc/sudoers.d/admin` drop-in.
+Root SSH login is disabled (`PermitRootLogin no`, `AllowUsers admin`) and root has no usable password (fedora-bootc ships it as `*` in `/etc/shadow`).
+`sshd` is configured (`/etc/ssh/sshd_config.d/10-kheeper-base.conf`) for publickey-only auth with agent/TCP/X11 forwarding disabled and conservative session and auth-retry limits.
+`PerSourcePenalties` is set explicitly so a single misbehaving source IP gets temporarily blocked by `sshd` itself (30s on auth failure, 10m on repeated abuse) without needing `fail2ban` or a separate `firewalld` ruleset.
 
 `admin_authorized_keys` from the host's kheeper config is rendered into `/var/home/admin/.ssh/authorized_keys` via the `authorized_keys.khtmpl` template, with directory and file modes enforced by a `tmpfiles.d` drop-in (`0700` on the home and `.ssh` directories, `0600` on `authorized_keys`).
 

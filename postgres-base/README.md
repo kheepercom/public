@@ -15,7 +15,7 @@ Inherits `22/tcp` from [`base`](../base). Postgres binds to `127.0.0.1:5432` and
 ## Layering on this image
 
 ```Containerfile
-FROM us.kheeper.com/public/postgres-base:v0.9.2
+FROM us.kheeper.com/public/postgres-base:v0.11.0
 
 # install your app, configure it to talk to localhost:5432 (or the unix
 # socket at /var/run/postgresql), etc.
@@ -32,7 +32,7 @@ Drop snippets into `/etc/kheeper/postgresql-conf.d/` at build time. The init scr
 - `postgresql-server` from the Fedora repos, configured to listen only on `localhost` and the unix socket
 - `postgresql-init.service` — runs `initdb` on first boot, then appends snippets from `/etc/kheeper/postgresql-conf.d/*.conf` to `postgresql.conf`
 - `wal-g` for continuous WAL archiving and base backups
-- `kheeper-object-proxy` — adapts wal-g's S3-compatible client to Kheeper's object store (`objects.kheeper.com`) using the host authentication key
+- `kheeper-object-proxy` — adapts wal-g's S3-compatible client to Kheeper's object store (`<region>.kheeper.io`) using the host authentication key
 - `walg-base-backup.timer` — daily base backup
 - `walg-retention.timer` — daily prune, keeping the last 7 full backups
 - `postgres_exporter` registered with vmsingle via a drop-in scrape config

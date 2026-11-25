@@ -1,23 +1,17 @@
 # latest quay.io/fedora/fedora-bootc:45-x86_64
-FROM quay.io/fedora/fedora-bootc@sha256:c4b95259df5f156ac918dbb0d73f3dc22d91e563de4faa6f529ab85cfe61c042
+FROM quay.io/fedora/fedora-bootc@sha256:49a5a46879e972f231d1045bf12a7801f35d262c4adf4cb2d874436bebbe0ec3
 
-RUN dnf makecache
-
-RUN dnf install -y firewalld && systemctl enable firewalld
+RUN --mount=type=cache,target=/var/cache/libdnf5 dnf install -y firewalld && systemctl enable firewalld
 RUN firewall-offline-cmd --remove-service=dhcpv6-client \
 	&& firewall-offline-cmd --remove-service=mdns \
 	&& firewall-offline-cmd --remove-service=ssh \
 	&& firewall-offline-cmd --zone=public --add-port=22/tcp
 
 COPY admin.sysusers /usr/lib/sysusers.d/admin.conf
-RUN useradd --uid 1000 --create-home --shell /bin/bash admin \
-	&& rm -f /var/home/admin/.bash_logout /var/home/admin/.bash_profile /var/home/admin/.bashrc
 COPY authorized_keys.khtmpl /usr/share/factory/var/home/admin/.ssh/authorized_keys.khtmpl
 COPY ssh-files.conf /usr/lib/tmpfiles.d/kheeper-base.conf
 COPY sshd.conf /etc/ssh/sshd_config.d/10-kheeper-base.conf
-COPY admin.sudoers /etc/sudoers.d/admin
-RUN chmod 0440 /etc/sudoers.d/admin
-RUN passwd -l root
+COPY --chmod=0440 admin.sudoers /etc/sudoers.d/admin
 
 COPY journald.conf /etc/systemd/journald.conf.d/10-kheeper-base.conf
 COPY nm-wait-online-any.conf /usr/lib/systemd/system/NetworkManager-wait-online.service.d/10-kheeper-any.conf

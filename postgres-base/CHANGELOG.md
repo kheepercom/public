@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.11.0
+
+### Changes
+
+- Rebuild on `metrics-base` v0.9.0 (Grafana 13.3.2 security release)
+
+## v0.10.0
+
+### Changes
+
+- Rebuild on `metrics-base` v0.8.0
+- Share the dnf cache across builds with a cache mount instead of `dnf clean all`
+- wal-g v3.0.10 (now on AWS SDK v2), postgres_exporter 0.21.1
+
+### Fixes
+
+- Docs named the object store `objects.kheeper.com`; it is `<region>.kheeper.io`
+
 ## v0.9.2
 
 ### Changes

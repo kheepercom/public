@@ -1,8 +1,8 @@
-FROM us.kheeper.com/public/base:v0.4.2
+FROM us.kheeper.com/public/base:v0.5.1
 
-ARG VMSINGLE_VERSION=v1.153.0
-ARG NODE_EXPORTER_VERSION=1.12.1
-ARG GRAFANA_VERSION=13.2.4
+ARG VMSINGLE_VERSION=v1.156.0
+ARG NODE_EXPORTER_VERSION=1.13.1
+ARG GRAFANA_VERSION=13.3.2
 
 RUN curl -LO https://github.com/VictoriaMetrics/VictoriaMetrics/releases/download/${VMSINGLE_VERSION}/victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz \
 	&& tar xzf victoria-metrics-linux-amd64-${VMSINGLE_VERSION}.tar.gz -C /usr/local/bin --transform 's/victoria-metrics-prod/victoria-metrics/' \
@@ -21,9 +21,8 @@ RUN groupadd --system --gid 995 vmetrics \
 	&& groupadd --system --gid 970 grafana \
 	&& useradd --system --uid 970 --gid 970 --no-create-home --home-dir /usr/share/grafana --shell /sbin/nologin grafana
 
-RUN curl -L -o /tmp/grafana.rpm https://dl.grafana.com/oss/release/grafana-${GRAFANA_VERSION}-1.x86_64.rpm \
+RUN --mount=type=cache,target=/var/cache/libdnf5 curl -L -o /tmp/grafana.rpm https://dl.grafana.com/oss/release/grafana-${GRAFANA_VERSION}-1.x86_64.rpm \
 	&& dnf install -y /tmp/grafana.rpm \
-	&& dnf clean all \
 	&& rm /tmp/grafana.rpm \
 	&& systemctl disable grafana-server.service || true \
 	&& rm -rf /var/lib/grafana

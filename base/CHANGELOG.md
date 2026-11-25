@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.5.1
+
+### Changes
+
+- Update base image to the latest `fedora-bootc:45` digest
+
+## v0.5.0
+
+### Changes
+
+- Update base image to the latest `fedora-bootc:45` digest
+- Drop `dnf makecache` and install with a dnf cache mount, so no repo metadata ships in the image
+- Create `admin` only via sysusers.d, not a build-time `useradd`
+- Install the sudoers drop-in with `COPY --chmod` and drop `passwd -l root`; fedora-bootc already ships root with no usable password
+
 ## v0.4.2
 
 ### Changes

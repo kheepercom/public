@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.1
+
+### Changes
+
+- Rebuild on `base` v0.5.1 (new `fedora-bootc:45` digest)
+
+## v0.5.0
+
+### Changes
+
+- Rebuild on `base` v0.5.0
+- Share the dnf cache across builds with a cache mount instead of `dnf clean all`
+- Pi-hole 2026.11.0
+
 ## v0.4.2
 
 ### Changes
